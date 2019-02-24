@@ -11,12 +11,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemsGalleryFragment extends Fragment {
     private static final String TAG = "ItemsGalleryFragment";
     private RecyclerView mItemsRecyclerView;
+    private List<GalleryItem> mItems = new ArrayList<>();
 
     public static ItemsGalleryFragment newInstance() {
         return new ItemsGalleryFragment();
@@ -37,20 +42,67 @@ public class ItemsGalleryFragment extends Fragment {
         mItemsRecyclerView = v.findViewById(R.id.items_recycler_view);
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        setupAdapter();
         return v;
     }
 
-    private class FetchItemsTask extends AsyncTask<Void,Void,Void> {
+    private void setupAdapter(){
+        if(isAdded()) {
+            mItemsRecyclerView.setAdapter(new LtechItemsAdapter(mItems));
+        }
+    }
+
+    private class LtechItemsHolder extends RecyclerView.ViewHolder {
+        private TextView mTitleTextView;
+
+        public LtechItemsHolder(View itemView) {
+            super(itemView);
+
+            mTitleTextView = (TextView) itemView;
+        }
+
+        public void bindGalleryItem(GalleryItem item) {
+            mTitleTextView.setText(item.getTitle());
+        }
+    }
+
+    private class LtechItemsAdapter extends RecyclerView.Adapter<LtechItemsHolder> {
+        private List<GalleryItem> mGalleryItems;
+
+        public LtechItemsAdapter(List<GalleryItem> galleryItems) {
+            mGalleryItems = galleryItems;
+        }
+
+        @NonNull
         @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                String result = new LtechFetchr()
-                        .getUrlString("http://dev-exam.l-tech.ru/api/v1/posts");
-                Log.i(TAG, "Fetched content of URL: " + result);
-            } catch (IOException ioe) {
-                Log.e(TAG, "Failed to fetch URL: ", ioe);
-            }
-            return null;
+        public LtechItemsHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+            TextView textView = new TextView(getActivity());
+            return new LtechItemsHolder(textView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull LtechItemsHolder ltechItemsHolder, int i) {
+            GalleryItem galleryItem = mGalleryItems.get(i);
+            ltechItemsHolder.bindGalleryItem(galleryItem);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mGalleryItems.size();
+        }
+    }
+
+    private class FetchItemsTask extends AsyncTask<Void,Void,List<GalleryItem>> {
+        @Override
+        protected List<GalleryItem> doInBackground(Void... voids) {
+
+            return new LtechFetchr().fetchItems();
+        }
+
+        @Override
+        protected void onPostExecute(List<GalleryItem> galleryItems) {
+            mItems = galleryItems;
+            setupAdapter();
         }
     }
 }
