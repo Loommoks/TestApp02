@@ -1,8 +1,11 @@
 package su.zencode.testapp02;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -36,7 +39,17 @@ public class ItemsGalleryFragment extends Fragment {
         setRetainInstance(true);
         new FetchItemsTask().execute();
 
-        mThumbnailDownloader = new ThumbnailDownloader<>();
+        Handler responseHandler = new Handler();
+        mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+        mThumbnailDownloader.setThumbnailDownloadListener(
+                new ThumbnailDownloader.ThumbnailDownloadListener<LtechItemsHolder>() {
+                    @Override
+                    public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap) {
+                        Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                        itemHolder.bindDrawable(drawable);
+                    }
+                }
+        );
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "Background thread started");
@@ -51,6 +64,12 @@ public class ItemsGalleryFragment extends Fragment {
 
         setupAdapter();
         return v;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mThumbnailDownloader.clearQueue();
     }
 
     @Override
