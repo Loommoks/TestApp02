@@ -24,6 +24,7 @@ public class ItemsGalleryFragment extends Fragment {
     private static final String TAG = "ItemsGalleryFragment";
     private RecyclerView mItemsRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
+    private ThumbnailDownloader<LtechItemsHolder> mThumbnailDownloader;
 
     public static ItemsGalleryFragment newInstance() {
         return new ItemsGalleryFragment();
@@ -33,8 +34,12 @@ public class ItemsGalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
         new FetchItemsTask().execute();
+
+        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
+        Log.i(TAG, "Background thread started");
     }
 
     @Nullable
@@ -46,6 +51,13 @@ public class ItemsGalleryFragment extends Fragment {
 
         setupAdapter();
         return v;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mThumbnailDownloader.quit();
+        Log.i(TAG, "Background thread destroyed");
     }
 
     private void setupAdapter(){
@@ -100,6 +112,7 @@ public class ItemsGalleryFragment extends Fragment {
             ltechItemsHolder.bindGalleryItem(galleryItem);
             Drawable placeHolder = getResources().getDrawable(R.drawable.loading_thumbnail);
             ltechItemsHolder.bindDrawable(placeHolder);
+            mThumbnailDownloader.queueThumbnail(ltechItemsHolder, galleryItem.getImageUrl());
         }
 
         @Override
