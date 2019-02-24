@@ -1,5 +1,6 @@
 package su.zencode.testapp02;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -53,16 +55,26 @@ public class ItemsGalleryFragment extends Fragment {
     }
 
     private class LtechItemsHolder extends RecyclerView.ViewHolder {
-        private TextView mTitleTextView;
+        private View mItemView;
 
         public LtechItemsHolder(View itemView) {
             super(itemView);
 
-            mTitleTextView = (TextView) itemView;
+            mItemView = itemView;
         }
 
         public void bindGalleryItem(GalleryItem item) {
-            mTitleTextView.setText(item.getTitle());
+            TextView titleTextView = mItemView.findViewById(R.id.item_title_view);
+            titleTextView.setText(item.getTitle());
+            TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
+            detailedTextView.setText(item.getText());
+            TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
+            dateTextView.setText(item.getText());
+        }
+
+        public void bindDrawable(Drawable drawable) {
+            ImageView imageView = mItemView.findViewById(R.id.item_image_view);
+            imageView.setImageDrawable(drawable);
         }
     }
 
@@ -76,14 +88,18 @@ public class ItemsGalleryFragment extends Fragment {
         @NonNull
         @Override
         public LtechItemsHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-            TextView textView = new TextView(getActivity());
-            return new LtechItemsHolder(textView);
+            //TextView textView = new TextView(getActivity());
+            LayoutInflater inflater = LayoutInflater.from(getActivity());
+            View view = inflater.inflate(R.layout.gallery_item,viewGroup, false);
+            return new LtechItemsHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull LtechItemsHolder ltechItemsHolder, int i) {
             GalleryItem galleryItem = mGalleryItems.get(i);
             ltechItemsHolder.bindGalleryItem(galleryItem);
+            Drawable placeHolder = getResources().getDrawable(R.drawable.loading_thumbnail);
+            ltechItemsHolder.bindDrawable(placeHolder);
         }
 
         @Override
