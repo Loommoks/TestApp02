@@ -16,10 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +98,10 @@ public class ItemsGalleryFragment extends Fragment {
             TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
             detailedTextView.setText(item.getText());
             TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
-            dateTextView.setText(item.getText());
+            dateTextView.setText(item.getDate());
+            TextView sortTextView = mItemView.findViewById(R.id.item_sort_view);
+            int tmpSort = item.getSort();
+            sortTextView.setText(Integer.toString(tmpSort));
         }
 
         public void bindDrawable(Drawable drawable) {
@@ -143,8 +144,9 @@ public class ItemsGalleryFragment extends Fragment {
     private class FetchItemsTask extends AsyncTask<Void,Void,List<GalleryItem>> {
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
-
-            return new LtechFetchr().fetchItems();
+            List<GalleryItem> itemslist = new LtechFetchr().fetchItems();
+            //Todo sort itemslist
+            return itemslist;
         }
 
         @Override
