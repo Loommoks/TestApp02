@@ -129,7 +129,7 @@ public class ItemsGalleryFragment extends Fragment {
         public void onBindViewHolder(@NonNull LtechItemsHolder ltechItemsHolder, int i) {
             GalleryItem galleryItem = mGalleryItems.get(i);
             ltechItemsHolder.bindGalleryItem(galleryItem);
-            Drawable placeHolder = getResources().getDrawable(R.drawable.loading_thumbnail);
+            Drawable placeHolder = getResources().getDrawable(R.drawable.in_progress_small);
             ltechItemsHolder.bindDrawable(placeHolder);
             mThumbnailDownloader.queueThumbnail(ltechItemsHolder, galleryItem.getImageUrl());
         }
