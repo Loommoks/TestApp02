@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TestApp02</string>
+    <string name="launch_button_label">Launch</string>
 </resources>
