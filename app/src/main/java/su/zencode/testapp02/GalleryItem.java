@@ -1,6 +1,7 @@
 package su.zencode.testapp02;
 
 import java.util.Comparator;
+import java.util.Date;
 
 public class GalleryItem {
     private String mId;
@@ -8,7 +9,7 @@ public class GalleryItem {
     private String mText;
     private String mImageUrl;
     private int mSort;
-    private String mDate;
+    private Date mDate;
 
     public String getId() {
         return mId;
@@ -50,11 +51,11 @@ public class GalleryItem {
         mSort = sort;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return mDate;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         mDate = date;
     }
 
@@ -68,6 +69,13 @@ public class GalleryItem {
         @Override
         public int compare(GalleryItem o1, GalleryItem o2) {
             return o1.getSort() - o2.getSort();
+        }
+    };
+
+    public static Comparator<GalleryItem> DateSortComparator = new Comparator<GalleryItem>() {
+        @Override
+        public int compare(GalleryItem o1, GalleryItem o2) {
+            return o1.getDate().compareTo(o2.getDate());
         }
     };
 }

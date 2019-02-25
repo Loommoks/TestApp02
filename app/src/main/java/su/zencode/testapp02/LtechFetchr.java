@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class LtechFetchr {
@@ -70,17 +73,29 @@ public class LtechFetchr {
             JSONObject itemJsonObject = jsonArray.getJSONObject(i);
 
             GalleryItem item = new GalleryItem();
-            //String idString = itemJsonObject.getString("id");
-            //int idInt = Integer.parseInt(idString);
+
             item.setId(itemJsonObject.getString("id"));
             item.setTitle(itemJsonObject.getString("title"));
             item.setText(itemJsonObject.getString("text"));
             item.setImageUrl(itemJsonObject.getString("image"));
             item.setSort(itemJsonObject.getInt("sort"));
-            item.setDate(itemJsonObject.getString("date"));
+            String stringDate = itemJsonObject.getString("date");
+            item.setDate(convertToDate(stringDate));
 
             items.add(item);
         }
+    }
+
+    private static Date convertToDate(String stringDate) {
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        try {
+            Date date = dateFormat.parse(stringDate);
+            return date;
+        } catch (ParseException e) {
+            Log.e(TAG, "Failed to parse Date from string", e);
+        }
+        return null;
     }
 
 }

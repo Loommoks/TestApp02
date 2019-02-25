@@ -73,21 +73,7 @@ public class ItemsGalleryFragment extends Fragment {
         mServerSortButton = v.findViewById(R.id.server_sort_button);
         mServerSortButton.setOnClickListener(new OnButtonClicked());
         mDateSortButton = v.findViewById(R.id.date_sort_button);
-        mDateSortButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String strDate = mItems.get(0).getDate();
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                try {
-                    Date date = dateFormat.parse(strDate);
-                    Log.i(TAG, "DateSort parsed, date: " + date);
-                } catch (ParseException e) {
-                    Log.e(TAG, "Failed to parse Date from string", e);
-                }
-                Log.i(TAG, "DateSort clicked, date: " + strDate);
-
-            }
-        });
+        mDateSortButton.setOnClickListener(new OnButtonClicked());
         return v;
     }
 
@@ -125,10 +111,10 @@ public class ItemsGalleryFragment extends Fragment {
             TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
             detailedTextView.setText(item.getText());
             TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
-            dateTextView.setText(item.getDate());
+            dateTextView.setText(item.getDate().toString());
+            dateTextView.setText(parseDateforLayout(item.getDate()));
             TextView sortTextView = mItemView.findViewById(R.id.item_sort_view);
-            int tmpSort = item.getSort();
-            sortTextView.setText(Integer.toString(tmpSort));
+            sortTextView.setText(Integer.toString(item.getSort()));
         }
 
         public void bindDrawable(Drawable drawable) {
@@ -195,7 +181,21 @@ public class ItemsGalleryFragment extends Fragment {
                     mDateSortButton.setEnabled(true);
                     Collections.sort(mItems, GalleryItem.ServerSortComparator);
                     setupAdapter();
+                    break;
+                case R.id.date_sort_button:
+                    mServerSortButton.setEnabled(true);
+                    mDateSortButton.setEnabled(false);
+                    Collections.sort(mItems, GalleryItem.DateSortComparator);
+                    setupAdapter();
+                    break;
             }
         }
+    }
+
+    public static String parseDateforLayout(Date date) {
+        String pattern = "dd.MM.yyyy, HH:mm";
+    SimpleDateFormat df = new SimpleDateFormat(pattern);
+    String stringDate = df.format(date);
+    return stringDate;
     }
 }
