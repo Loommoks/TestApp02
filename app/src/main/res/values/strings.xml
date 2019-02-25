@@ -3,4 +3,5 @@
     <string name="launch_button_label">Launch</string>
     <string name="server_sort_button_label">Sort by Server</string>
     <string name="date_sort_button_label">Sort by Date</string>
+    <string name="refresh_button">Refresh</string>
 </resources>
