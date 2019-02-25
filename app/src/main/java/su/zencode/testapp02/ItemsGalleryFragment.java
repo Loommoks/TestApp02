@@ -18,10 +18,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class ItemsGalleryFragment extends Fragment {
@@ -69,6 +73,21 @@ public class ItemsGalleryFragment extends Fragment {
         mServerSortButton = v.findViewById(R.id.server_sort_button);
         mServerSortButton.setOnClickListener(new OnButtonClicked());
         mDateSortButton = v.findViewById(R.id.date_sort_button);
+        mDateSortButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String strDate = mItems.get(0).getDate();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                try {
+                    Date date = dateFormat.parse(strDate);
+                    Log.i(TAG, "DateSort parsed, date: " + date);
+                } catch (ParseException e) {
+                    Log.e(TAG, "Failed to parse Date from string", e);
+                }
+                Log.i(TAG, "DateSort clicked, date: " + strDate);
+
+            }
+        });
         return v;
     }
 
