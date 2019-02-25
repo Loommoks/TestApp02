@@ -1,5 +1,7 @@
 package su.zencode.testapp02;
 
+import java.util.Comparator;
+
 public class GalleryItem {
     private String mId;
     private String mTitle;
@@ -61,4 +63,11 @@ public class GalleryItem {
     public String toString() {
         return mTitle;
     } */
+
+    public static Comparator<GalleryItem> ServerSortComparator = new Comparator<GalleryItem>() {
+        @Override
+        public int compare(GalleryItem o1, GalleryItem o2) {
+            return o1.getSort() - o2.getSort();
+        }
+    };
 }

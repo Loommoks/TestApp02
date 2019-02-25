@@ -15,10 +15,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ItemsGalleryFragment extends Fragment {
@@ -26,6 +29,8 @@ public class ItemsGalleryFragment extends Fragment {
     private RecyclerView mItemsRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
     private ThumbnailDownloader<LtechItemsHolder> mThumbnailDownloader;
+    private Button mServerSortButton;
+    private Button mDateSortButton;
 
     public static ItemsGalleryFragment newInstance() {
         return new ItemsGalleryFragment();
@@ -61,6 +66,9 @@ public class ItemsGalleryFragment extends Fragment {
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         setupAdapter();
+        mServerSortButton = v.findViewById(R.id.server_sort_button);
+        mServerSortButton.setOnClickListener(new OnButtonClicked());
+        mDateSortButton = v.findViewById(R.id.date_sort_button);
         return v;
     }
 
@@ -145,7 +153,9 @@ public class ItemsGalleryFragment extends Fragment {
         @Override
         protected List<GalleryItem> doInBackground(Void... voids) {
             List<GalleryItem> itemslist = new LtechFetchr().fetchItems();
-            //Todo sort itemslist
+
+            //Collections.sort(itemslist, GalleryItem.ServerSortComparator);
+
             return itemslist;
         }
 
@@ -153,6 +163,20 @@ public class ItemsGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
             mItems = galleryItems;
             setupAdapter();
+        }
+    }
+
+    public class OnButtonClicked implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.server_sort_button:
+                    mServerSortButton.setEnabled(false);
+                    mDateSortButton.setEnabled(true);
+                    Collections.sort(mItems, GalleryItem.ServerSortComparator);
+                    setupAdapter();
+            }
         }
     }
 }
