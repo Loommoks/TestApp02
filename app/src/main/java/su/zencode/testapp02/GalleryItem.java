@@ -80,17 +80,5 @@ public class GalleryItem {
         return mTitle;
     } */
 
-    public static Comparator<GalleryItem> ServerSortComparator = new Comparator<GalleryItem>() {
-        @Override
-        public int compare(GalleryItem o1, GalleryItem o2) {
-            return o1.getSort() - o2.getSort();
-        }
-    };
 
-    public static Comparator<GalleryItem> DateSortComparator = new Comparator<GalleryItem>() {
-        @Override
-        public int compare(GalleryItem o1, GalleryItem o2) {
-            return o1.getDate().compareTo(o2.getDate());
-        }
-    };
 }

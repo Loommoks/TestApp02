@@ -33,14 +33,16 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+
 public class ItemsGalleryFragment extends Fragment {
     private static final String TAG = "ItemsGalleryFragment";
     private RecyclerView mItemsRecyclerView;
-    private List<GalleryItem> mItems = new ArrayList<>();
+    //private List<GalleryItem> mItems = new ArrayList<>();
     private ThumbnailDownloader<LtechItemsHolder> mThumbnailDownloader;
     private Button mServerSortButton;
     private Button mDateSortButton;
     private boolean mSortByServer;
+    private ItemLab mItemLab;
     // tmp
     private LtechItemsAdapter mLtechItemsAdapter;
 
@@ -53,6 +55,7 @@ public class ItemsGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
+        mItemLab = ItemLab.get(getActivity());
         new FetchItemsTask().execute();
 
         Handler responseHandler = new Handler();
@@ -61,7 +64,7 @@ public class ItemsGalleryFragment extends Fragment {
                 new ThumbnailDownloader.ThumbnailDownloadListener<LtechItemsHolder>() {
                     @Override
                     public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap, String itemId) {
-                        updateItemBitmap(itemId, bitmap);
+                        mItemLab.updateItemBitmap(itemId, bitmap);
                         Drawable drawable = new BitmapDrawable(getResources(), bitmap);
                         itemHolder.bindDrawable(drawable);
                     }
@@ -125,7 +128,7 @@ public class ItemsGalleryFragment extends Fragment {
 
     private void setupAdapter(){
         if(isAdded()) {
-                mLtechItemsAdapter = new LtechItemsAdapter(mItems);
+                mLtechItemsAdapter = new LtechItemsAdapter(mItemLab.getItems());
 
             mItemsRecyclerView.setAdapter(mLtechItemsAdapter);
         }
@@ -150,7 +153,7 @@ public class ItemsGalleryFragment extends Fragment {
             detailedTextView.setText(item.getText());
             TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
             dateTextView.setText(item.getDate().toString());
-            dateTextView.setText(parseDateforLayout(item.getDate()));
+            dateTextView.setText(ItemLab.parseDateforLayout(item.getDate()));
             TextView sortTextView = mItemView.findViewById(R.id.item_sort_view);
             sortTextView.setText(Integer.toString(item.getSort()));
         }
@@ -215,11 +218,11 @@ public class ItemsGalleryFragment extends Fragment {
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
 
-            mItems = galleryItems;
+            mItemLab.setItems(galleryItems);
             if (mSortByServer) {
-                Collections.sort(mItems, GalleryItem.ServerSortComparator);
+                mItemLab.sortItemsByServer();
             } else {
-                Collections.sort(mItems, GalleryItem.DateSortComparator);
+                mItemLab.sortItemsByDate();
             }
 
             setupAdapter();
@@ -241,9 +244,9 @@ public class ItemsGalleryFragment extends Fragment {
         protected void onPostExecute(List<GalleryItem> galleryItems) {
 
             if (mSortByServer) {
-                Collections.sort(galleryItems, GalleryItem.ServerSortComparator);
+                Collections.sort(galleryItems, ItemLab.ServerSortComparator);
             } else {
-                Collections.sort(galleryItems, GalleryItem.DateSortComparator);
+                Collections.sort(galleryItems, ItemLab.DateSortComparator);
             }
             updateModel(galleryItems);
 
@@ -253,12 +256,13 @@ public class ItemsGalleryFragment extends Fragment {
     /** end of copypast */
 
     private void updateModel(List<GalleryItem> galleryItems) {
+        List<GalleryItem> mItems = mItemLab.getItems();
 
 
         //mItems.clear();
         //mItems.addAll(galleryItems);
         for (int i = 0; i < mItems.size(); i++) {
-            if(!newModelIsContainId(mItems.get(i).getId(), galleryItems)) {
+            if(!mItemLab.lisContainId(mItems.get(i).getId(), galleryItems)) {
                 mItems.remove(i);
             }
         }
@@ -266,7 +270,7 @@ public class ItemsGalleryFragment extends Fragment {
         for (int position = 0; position < galleryItems.size(); position++) {
             GalleryItem newItem = galleryItems.get(position);
 
-            if (!currentModelContain(newItem.getId())) {
+            if (!mItemLab.currentModelContain(newItem.getId())) {
                 mItems.add(position,newItem);
             }
 
@@ -283,38 +287,21 @@ public class ItemsGalleryFragment extends Fragment {
     }
 
     private void updateModelItem(int position, GalleryItem newItem) {
-        mItems.get(position).setTitle(newItem.getTitle());
-        mItems.get(position).setText(newItem.getText());
-        if(!mItems.get(position).getImageUrl().equals(newItem.getImageUrl())){
+        GalleryItem mItem = mItemLab.getItem(position);
+        mItem.setTitle(newItem.getTitle());
+        mItem.setText(newItem.getText());
+        if(!mItem.getImageUrl().equals(newItem.getImageUrl())){
             Toast.makeText(getActivity(), "Image URL changed", Toast.LENGTH_SHORT).show();
-            mItems.get(position).setImageUrl(newItem.getImageUrl());
-            mItems.get(position).setBitmap(null);
+            mItem.setImageUrl(newItem.getImageUrl());
+            mItem.setBitmap(null);
         }
-        mItems.get(position).setSort(newItem.getSort());
-        mItems.get(position).setDate(newItem.getDate());
+        mItem.setSort(newItem.getSort());
+        mItem.setDate(newItem.getDate());
 
         mLtechItemsAdapter.notifyDataSetChanged();
     }
 
-    private boolean newModelIsContainId(String id, List<GalleryItem> newList) {
-        boolean isContain = false;
-        for (GalleryItem item :
-                newList) {
-            if (item.getId().equals(id)) {
-                isContain = true;
-            }
-        }
-        return isContain;
-    }
 
-    private boolean currentModelContain(String id) {
-        for (int i = 0; i < mItems.size(); i++) {
-            if (mItems.get(i).getId().equals(id)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     public class OnButtonClicked implements View.OnClickListener{
@@ -326,34 +313,22 @@ public class ItemsGalleryFragment extends Fragment {
                     mSortByServer = true;
                     mServerSortButton.setEnabled(false);
                     mDateSortButton.setEnabled(true);
-                    Collections.sort(mItems, GalleryItem.ServerSortComparator);
+                    mItemLab.sortItemsByServer();
                     setupAdapter();
                     break;
                 case R.id.date_sort_button:
                     mSortByServer = false;
                     mServerSortButton.setEnabled(true);
                     mDateSortButton.setEnabled(false);
-                    Collections.sort(mItems, GalleryItem.DateSortComparator);
+                    mItemLab.sortItemsByDate();
                     setupAdapter();
                     break;
             }
         }
     }
 
-    public static String parseDateforLayout(Date date) {
-        String pattern = "dd.MM.yyyy, HH:mm";
-    SimpleDateFormat df = new SimpleDateFormat(pattern);
-    String stringDate = df.format(date);
-    return stringDate;
-    }
 
-    public void updateItemBitmap(String itemId, Bitmap bitmap) {
-        for(int i = 0; i < mItems.size(); i++) {
-            if (mItems.get(i).getId().equals(itemId)){
-                mItems.get(i).setBitmap(bitmap);
-                break;
-            }
-        }
-    }
+
+
 
 }
