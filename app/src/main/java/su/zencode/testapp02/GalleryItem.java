@@ -1,5 +1,7 @@
 package su.zencode.testapp02;
 
+import android.graphics.Bitmap;
+
 import java.util.Comparator;
 import java.util.Date;
 
@@ -10,6 +12,19 @@ public class GalleryItem {
     private String mImageUrl;
     private int mSort;
     private Date mDate;
+    private Bitmap mBitmap;
+
+    public GalleryItem() {
+        mBitmap = null;
+    }
+
+    public Bitmap getBitmap() {
+        return mBitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        mBitmap = bitmap;
+    }
 
     public String getId() {
         return mId;

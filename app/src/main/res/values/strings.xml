@@ -4,4 +4,5 @@
     <string name="server_sort_button_label">Sort by Server</string>
     <string name="date_sort_button_label">Sort by Date</string>
     <string name="refresh_button">Refresh</string>
+    <string name="item_gallery_toolbar_title">Dev Exam</string>
 </resources>

@@ -19,11 +19,12 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private boolean mHasQuit = false;
     private Handler mRequestHandler;
     private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<T,String> mReqestIdMap = new ConcurrentHashMap<>();
     private Handler mResponseHandler;
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
     public interface ThumbnailDownloadListener<T> {
-        void onThumbnailDownloaded(T target, Bitmap thumbnail);
+        void onThumbnailDownloaded(T target, Bitmap thumbnail, String id);
     }
 
     public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> listener) {
@@ -55,13 +56,15 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         return super.quit();
     }
 
-    public void queueThumbnail(T target, String url) {
+    public void queueThumbnail(T target, String url, String containerId) {
         Log.i(TAG, "Got a URL: " + url);
 
         if(url == null) {
             mRequestMap.remove(target);
+            mReqestIdMap.remove(target);
         } else {
             mRequestMap.put(target, url);
+            mReqestIdMap.put(target, containerId);
             mRequestHandler.obtainMessage(MESSAGE_DOWNLOAD, target)
                     .sendToTarget();
         }
@@ -70,11 +73,13 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     public void clearQueue() {
         mResponseHandler.removeMessages(MESSAGE_DOWNLOAD);
         mRequestMap.clear();
+        mReqestIdMap.clear();
     }
 
     private void handleRequest(final T target) {
         try {
             final String url = mRequestMap.get(target);
+            final String containerId = mReqestIdMap.get(target);
             final String urlFull = BASE_URL + url;
 
             if (mRequestMap.get(target) == null) {
@@ -94,7 +99,8 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                     }
 
                     mRequestMap.remove(target);
-                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                    mReqestIdMap.remove(target);
+                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap,containerId);
                 }
             });
         } catch (IOException ioe) {

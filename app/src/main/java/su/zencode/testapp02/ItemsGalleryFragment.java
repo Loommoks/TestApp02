@@ -1,5 +1,6 @@
 package su.zencode.testapp02;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -9,6 +10,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +40,9 @@ public class ItemsGalleryFragment extends Fragment {
     private ThumbnailDownloader<LtechItemsHolder> mThumbnailDownloader;
     private Button mServerSortButton;
     private Button mDateSortButton;
+    private boolean mSortByServer;
+    // tmp
+    private LtechItemsAdapter mLtechItemsAdapter;
 
     public static ItemsGalleryFragment newInstance() {
         return new ItemsGalleryFragment();
@@ -55,7 +60,8 @@ public class ItemsGalleryFragment extends Fragment {
         mThumbnailDownloader.setThumbnailDownloadListener(
                 new ThumbnailDownloader.ThumbnailDownloadListener<LtechItemsHolder>() {
                     @Override
-                    public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap) {
+                    public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap, String itemId) {
+                        updateItemBitmap(itemId, bitmap);
                         Drawable drawable = new BitmapDrawable(getResources(), bitmap);
                         itemHolder.bindDrawable(drawable);
                     }
@@ -73,11 +79,15 @@ public class ItemsGalleryFragment extends Fragment {
         mItemsRecyclerView = v.findViewById(R.id.items_recycler_view);
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        setupAdapter();
         mServerSortButton = v.findViewById(R.id.server_sort_button);
         mServerSortButton.setOnClickListener(new OnButtonClicked());
+        mSortByServer = true;
+        mServerSortButton.setEnabled(false);
+
         mDateSortButton = v.findViewById(R.id.date_sort_button);
         mDateSortButton.setOnClickListener(new OnButtonClicked());
+
+        setupAdapter();
         return v;
     }
 
@@ -92,6 +102,8 @@ public class ItemsGalleryFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.refresh_list_button:
                 Toast.makeText(getActivity(), "refresh_list_button clicked", Toast.LENGTH_SHORT).show();
+                new FetchItemsUpdateTask().execute();
+
                 return true;
                 default:
                     return super.onOptionsItemSelected(item);
@@ -113,20 +125,25 @@ public class ItemsGalleryFragment extends Fragment {
 
     private void setupAdapter(){
         if(isAdded()) {
-            mItemsRecyclerView.setAdapter(new LtechItemsAdapter(mItems));
+                mLtechItemsAdapter = new LtechItemsAdapter(mItems);
+
+            mItemsRecyclerView.setAdapter(mLtechItemsAdapter);
         }
     }
 
-    private class LtechItemsHolder extends RecyclerView.ViewHolder {
+    private class LtechItemsHolder extends RecyclerView.ViewHolder
+    implements View.OnClickListener {
         private View mItemView;
+        private GalleryItem mItem;
 
         public LtechItemsHolder(View itemView) {
             super(itemView);
-
+            itemView.setOnClickListener(this);
             mItemView = itemView;
         }
 
         public void bindGalleryItem(GalleryItem item) {
+            mItem = item;
             TextView titleTextView = mItemView.findViewById(R.id.item_title_view);
             titleTextView.setText(item.getTitle());
             TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
@@ -141,6 +158,12 @@ public class ItemsGalleryFragment extends Fragment {
         public void bindDrawable(Drawable drawable) {
             ImageView imageView = mItemView.findViewById(R.id.item_image_view);
             imageView.setImageDrawable(drawable);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent intent = ItemDetailedActivity.newIntent(getActivity(), mItem.getId());
+            startActivity(intent);
         }
     }
 
@@ -166,7 +189,11 @@ public class ItemsGalleryFragment extends Fragment {
             ltechItemsHolder.bindGalleryItem(galleryItem);
             Drawable placeHolder = getResources().getDrawable(R.drawable.in_progress_small);
             ltechItemsHolder.bindDrawable(placeHolder);
-            mThumbnailDownloader.queueThumbnail(ltechItemsHolder, galleryItem.getImageUrl());
+            if(mGalleryItems.get(i).getBitmap() == null) {
+                mThumbnailDownloader.queueThumbnail(ltechItemsHolder, galleryItem.getImageUrl(), galleryItem.getId());
+            } else {
+                ltechItemsHolder.bindDrawable(new BitmapDrawable(getResources(), mGalleryItems.get(i).getBitmap()));
+            }
         }
 
         @Override
@@ -187,10 +214,108 @@ public class ItemsGalleryFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
+
             mItems = galleryItems;
+            if (mSortByServer) {
+                Collections.sort(mItems, GalleryItem.ServerSortComparator);
+            } else {
+                Collections.sort(mItems, GalleryItem.DateSortComparator);
+            }
+
             setupAdapter();
         }
     }
+
+    /** copypast */
+    //Todo fix.it
+
+    private class FetchItemsUpdateTask extends AsyncTask<Void,Void,List<GalleryItem>> {
+        @Override
+        protected List<GalleryItem> doInBackground(Void... voids) {
+            List<GalleryItem> itemslist = new LtechFetchr().fetchItems();
+
+            return itemslist;
+        }
+
+        @Override
+        protected void onPostExecute(List<GalleryItem> galleryItems) {
+
+            if (mSortByServer) {
+                Collections.sort(galleryItems, GalleryItem.ServerSortComparator);
+            } else {
+                Collections.sort(galleryItems, GalleryItem.DateSortComparator);
+            }
+            updateModel(galleryItems);
+
+        }
+    }
+
+    /** end of copypast */
+
+    private void updateModel(List<GalleryItem> galleryItems) {
+
+
+        //mItems.clear();
+        //mItems.addAll(galleryItems);
+        for (int i = 0; i < mItems.size(); i++) {
+            if(!newModelIsContainId(mItems.get(i).getId(), galleryItems)) {
+                mItems.remove(i);
+            }
+        }
+
+        for (int position = 0; position < galleryItems.size(); position++) {
+            GalleryItem newItem = galleryItems.get(position);
+
+            if (!currentModelContain(newItem.getId())) {
+                mItems.add(position,newItem);
+            }
+
+            for (int i = 0; i < mItems.size(); i++) {
+                if (newItem.getId().equals(mItems.get(i).getId())){
+                    updateModelItem(i, newItem);
+                }
+            }
+
+        }
+
+
+        mLtechItemsAdapter.notifyDataSetChanged();
+    }
+
+    private void updateModelItem(int position, GalleryItem newItem) {
+        mItems.get(position).setTitle(newItem.getTitle());
+        mItems.get(position).setText(newItem.getText());
+        if(!mItems.get(position).getImageUrl().equals(newItem.getImageUrl())){
+            Toast.makeText(getActivity(), "Image URL changed", Toast.LENGTH_SHORT).show();
+            mItems.get(position).setImageUrl(newItem.getImageUrl());
+            mItems.get(position).setBitmap(null);
+        }
+        mItems.get(position).setSort(newItem.getSort());
+        mItems.get(position).setDate(newItem.getDate());
+
+        mLtechItemsAdapter.notifyDataSetChanged();
+    }
+
+    private boolean newModelIsContainId(String id, List<GalleryItem> newList) {
+        boolean isContain = false;
+        for (GalleryItem item :
+                newList) {
+            if (item.getId().equals(id)) {
+                isContain = true;
+            }
+        }
+        return isContain;
+    }
+
+    private boolean currentModelContain(String id) {
+        for (int i = 0; i < mItems.size(); i++) {
+            if (mItems.get(i).getId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public class OnButtonClicked implements View.OnClickListener{
 
@@ -198,12 +323,14 @@ public class ItemsGalleryFragment extends Fragment {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.server_sort_button:
+                    mSortByServer = true;
                     mServerSortButton.setEnabled(false);
                     mDateSortButton.setEnabled(true);
                     Collections.sort(mItems, GalleryItem.ServerSortComparator);
                     setupAdapter();
                     break;
                 case R.id.date_sort_button:
+                    mSortByServer = false;
                     mServerSortButton.setEnabled(true);
                     mDateSortButton.setEnabled(false);
                     Collections.sort(mItems, GalleryItem.DateSortComparator);
@@ -219,4 +346,14 @@ public class ItemsGalleryFragment extends Fragment {
     String stringDate = df.format(date);
     return stringDate;
     }
+
+    public void updateItemBitmap(String itemId, Bitmap bitmap) {
+        for(int i = 0; i < mItems.size(); i++) {
+            if (mItems.get(i).getId().equals(itemId)){
+                mItems.get(i).setBitmap(bitmap);
+                break;
+            }
+        }
+    }
+
 }
