@@ -2,7 +2,6 @@ package su.zencode.testapp02;
 
 import android.graphics.Bitmap;
 
-import java.util.Comparator;
 import java.util.Date;
 
 public class GalleryItem {

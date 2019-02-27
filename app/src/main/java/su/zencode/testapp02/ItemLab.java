@@ -2,6 +2,8 @@ package su.zencode.testapp02;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.List;
 
 public class ItemLab {
     private static ItemLab sItemLab;
+    private static final String TAG = ".ItemLab";
 
     private List<GalleryItem> mItems;
 
@@ -31,9 +34,11 @@ public class ItemLab {
         mItems = items;
     }
 
+    /**
     public void addItem (GalleryItem item) {
         mItems.add(item);
     }
+     */
 
     public List<GalleryItem> getItems() {
         return mItems;
@@ -43,6 +48,7 @@ public class ItemLab {
         return mItems.get(index);
     }
 
+    /**
     public GalleryItem getItem(String id) {
         for (GalleryItem item :
                 mItems) {
@@ -52,6 +58,20 @@ public class ItemLab {
         }
 
         return null;
+    }
+    */
+
+    public void updateItem(int position, GalleryItem newItem) {
+        GalleryItem mItem = getItem(position);
+        mItem.setTitle(newItem.getTitle());
+        mItem.setText(newItem.getText());
+        if(!mItem.getImageUrl().equals(newItem.getImageUrl())){
+            Log.i(TAG, "Image URL changed");
+            mItem.setImageUrl(newItem.getImageUrl());
+            mItem.setBitmap(null);
+        }
+        mItem.setSort(newItem.getSort());
+        mItem.setDate(newItem.getDate());
     }
 
     public static Comparator<GalleryItem> ServerSortComparator = new Comparator<GalleryItem>() {
@@ -68,26 +88,25 @@ public class ItemLab {
         }
     };
 
-    public boolean lisContainId(String id, List<GalleryItem> newList) {
-        boolean isContain = false;
-        for (GalleryItem item :
-                newList) {
-            if (item.getId().equals(id)) {
-                isContain = true;
+    /**
+    public int listContainId(List<GalleryItem> newList, String id) {
+        for (int i = 0; i < newList.size(); i++) {
+            if (newList.get(i).getId().equals(id)) {
+                return i;
             }
         }
-        return isContain;
+        return -1;
     }
 
-    public boolean currentModelContain(String id) {
-        for (GalleryItem item :
-                mItems) {
-            if (item.getId().equals(id)){
-                return true;
+    public int modelContain(String id) {
+        for (int i = 0; i < mItems.size(); i++) {
+            if (mItems.get(i).getId().equals(id)){
+                return i;
             }
         }
-        return false;
+        return -1;
     }
+     */
 
     public static String parseDateforLayout(Date date) {
         String pattern = "dd.MM.yyyy, HH:mm";
@@ -106,12 +125,51 @@ public class ItemLab {
         }
     }
 
-    public void sortItemsByServer() {
-        Collections.sort(mItems, ServerSortComparator);
+    public void smoothMergeNewItemList(List<GalleryItem> newList, RecyclerView.Adapter adapter,
+                                       Comparator<GalleryItem> comparator) {
+
+        Collections.sort(newList, comparator);
+
+        for(int i = 0; i < newList.size(); i++) {
+
+            if (i == mItems.size()) {
+                mItems.add(i, newList.get(i));
+                adapter.notifyItemInserted(i);
+                continue;
+            }
+
+            if(mItems.get(i).getId().equals(newList.get(i).getId())) {
+                updateItem(i, newList.get(i));
+                adapter.notifyItemChanged(i);
+                continue;
+            }
+
+            if (comparator.compare(mItems.get(i), newList.get(i)) < 0) {
+                mItems.remove(i);
+                adapter.notifyItemRemoved(i);
+                i--;
+                continue;
+            }
+
+            if (comparator.compare(mItems.get(i), newList.get(i)) == 0) {
+                mItems.add(i, newList.get(i));
+                adapter.notifyItemInserted(i);
+                continue;
+            }
+
+            if (comparator.compare(mItems.get(i), newList.get(i)) > 0) {
+                mItems.add(i, newList.get(i));
+                adapter.notifyItemInserted(i);
+                continue;
+            }
+
+        }
     }
 
-    public void sortItemsByDate() {
-        Collections.sort(mItems, DateSortComparator);
+
+    public void sortItemsWith(Comparator<GalleryItem> comparator) {
+        Collections.sort(mItems, comparator);
     }
+
 
 }
