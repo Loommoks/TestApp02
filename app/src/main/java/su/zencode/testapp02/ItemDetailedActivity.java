@@ -18,7 +18,8 @@ public class ItemDetailedActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment() {
-        return null;
+        String itemId = getIntent().getStringExtra(EXTRA_ITEM_ID);
+        return ItemDetailedFragment.newInstance(itemId);
     }
 
     /**@Override

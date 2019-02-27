@@ -48,7 +48,7 @@ public class ItemLab {
         return mItems.get(index);
     }
 
-    /**
+
     public GalleryItem getItem(String id) {
         for (GalleryItem item :
                 mItems) {
@@ -59,7 +59,7 @@ public class ItemLab {
 
         return null;
     }
-    */
+
 
     public void updateItem(int position, GalleryItem newItem) {
         GalleryItem mItem = getItem(position);
