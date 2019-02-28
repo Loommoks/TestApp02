@@ -34,12 +34,6 @@ public class ItemLab {
         mItems = items;
     }
 
-    /**
-    public void addItem (GalleryItem item) {
-        mItems.add(item);
-    }
-     */
-
     public List<GalleryItem> getItems() {
         return mItems;
     }
