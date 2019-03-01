@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">TestApp02</string>
-    <string name="launch_button_label">Launch</string>
+    <string name="phone_input_digits">1234567890+-() </string>
+    <string name="launch_button_label">Sign In</string>
     <string name="server_sort_button_label">Sort by Server</string>
     <string name="date_sort_button_label">Sort by Date</string>
     <string name="refresh_button">Refresh</string>
     <string name="item_gallery_toolbar_title">Dev Exam</string>
+    <string name="launcher_logo_description">Cool company logo</string>
+    <string name="phone_number_field_hint">Phone number</string>
+    <string name="password_field_hint">Password</string>
 </resources>

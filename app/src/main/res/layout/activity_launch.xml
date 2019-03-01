@@ -1,10 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
+    android:gravity="center"
     tools:context=".LaunchActivity">
+
+    <ImageView
+        android:id="@+id/launcher_logo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:padding="16dp"
+        android:src="@drawable/androidcentral"
+        android:contentDescription="@string/launcher_logo_description"/>
+
+    <EditText
+        android:id="@+id/phone_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        />
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/password_field_hint"
+        android:inputType="textPassword"
+        android:maxLength="9"/>
 
     <Button
         android:id="@+id/launch_button"
@@ -20,4 +47,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

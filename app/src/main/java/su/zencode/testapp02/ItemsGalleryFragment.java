@@ -1,5 +1,7 @@
 package su.zencode.testapp02;
 
+import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -10,6 +12,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -25,6 +28,8 @@ import android.widget.TextView;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class ItemsGalleryFragment extends Fragment {
@@ -36,6 +41,7 @@ public class ItemsGalleryFragment extends Fragment {
     private ItemLab mItemLab;
     private LtechItemsAdapter mLtechItemsAdapter;
     private Comparator<GalleryItem> mComparator;
+    private Timer mTimer;
 
     public static ItemsGalleryFragment newInstance() {
         return new ItemsGalleryFragment();
@@ -47,6 +53,13 @@ public class ItemsGalleryFragment extends Fragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
         mItemLab = ItemLab.get(getActivity());
+        mTimer = new Timer();
+        mTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                new FetchItemsUpdateTask().execute();
+            }
+        },0,3000);
         new FetchItemsTask().execute();
 
         Handler responseHandler = new Handler();
@@ -69,9 +82,16 @@ public class ItemsGalleryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.fragment_items_gallery, container, false);
         mItemsRecyclerView = v.findViewById(R.id.items_recycler_view);
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        /**
+         * AppCompatActivity activity = (AppCompatActivity) getActivity();
+        android.support.v7.app.ActionBar mActionBar = activity.getSupportActionBar();
+        mActionBar.setTitle("Trello");
+         */
 
         mServerSortButton = v.findViewById(R.id.server_sort_button);
         mServerSortButton.setOnClickListener(new OnButtonClicked());
@@ -102,6 +122,8 @@ public class ItemsGalleryFragment extends Fragment {
         }
     }
 
+
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -111,6 +133,7 @@ public class ItemsGalleryFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mTimer.cancel();
         mThumbnailDownloader.quit();
         Log.i(TAG, "Background thread destroyed");
     }

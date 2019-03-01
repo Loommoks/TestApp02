@@ -17,6 +17,7 @@ public class ItemLab {
     private static final String TAG = ".ItemLab";
 
     private List<GalleryItem> mItems;
+    //private ConcurrentArrayList<GalleryItem> mItems;
 
     public static ItemLab get(Context context) {
         if (sItemLab == null) {
@@ -91,8 +92,8 @@ public class ItemLab {
         }
         return -1;
     }
-
-    public int modelContain(String id) {
+     */
+    public int getItemPosition(String id) {
         for (int i = 0; i < mItems.size(); i++) {
             if (mItems.get(i).getId().equals(id)){
                 return i;
@@ -100,7 +101,6 @@ public class ItemLab {
         }
         return -1;
     }
-     */
 
     public static String parseDateforLayout(Date date) {
         String pattern = "dd.MM.yyyy, HH:mm";

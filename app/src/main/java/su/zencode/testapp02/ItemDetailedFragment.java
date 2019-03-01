@@ -8,11 +8,14 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -25,6 +28,7 @@ public class ItemDetailedFragment extends Fragment {
     private ImageView mItemImageView;
     private TextView mItemTitleView;
     private TextView mItemDescriprionView;
+    private ActionBar mActionBar;
     private ThumbnailDownloader<ImageView> mThumbnailDownloader;
 
 
@@ -40,17 +44,29 @@ public class ItemDetailedFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String itemId = getArguments().getString(ARG_ITEM_ID);
-        mItem = ItemLab.get(getActivity()).getItem(itemId);
 
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_item_detailed, container, false);
+
+        String itemId = getArguments().getString(ARG_ITEM_ID);
+        mItem = ItemLab.get(getActivity()).getItem(itemId);
+        if (mItem == null) {
+            onDestroy();
+        }
+
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        mActionBar = activity.getSupportActionBar();
+        mActionBar.setTitle(mItem.getTitle());
+
+        Toast.makeText(getActivity(), mItem.getTitle(), Toast.LENGTH_LONG).show();
 
         mItemImageView = v.findViewById(R.id.item_image);
         if(mItem.getBitmap() == null) {
@@ -68,6 +84,7 @@ public class ItemDetailedFragment extends Fragment {
         } else {
             mItemImageView.setImageDrawable(new BitmapDrawable(getResources(), mItem.getBitmap()));
         }
+
 
         mItemTitleView = v.findViewById(R.id.item_text);
         mItemTitleView.setText(mItem.getTitle());
