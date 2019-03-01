@@ -19,14 +19,14 @@
         android:contentDescription="@string/launcher_logo_description"/>
 
     <EditText
-        android:id="@+id/phone_number"
+        android:id="@+id/phone_number_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="phone"
         />
 
     <EditText
-        android:id="@+id/password"
+        android:id="@+id/password_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/password_field_hint"

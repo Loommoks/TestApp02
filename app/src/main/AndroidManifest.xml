@@ -11,7 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".LaunchActivity">
+        <activity android:name=".LaunchActivity"
+            android:theme="@style/LauncherTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -19,7 +20,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".ItemsGalleryActivity" />
-        <activity android:name=".ItemDetailedActivity"></activity>
+        <activity android:name=".ItemDetailedActivity"
+            android:parentActivityName=".ItemsGalleryActivity"></activity>
+        <activity
+            android:name=".ItemDetailedPagerActivity"
+            android:parentActivityName=".ItemsGalleryActivity">
+        </activity>
     </application>
 
 </manifest>

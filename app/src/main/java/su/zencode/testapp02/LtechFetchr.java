@@ -54,7 +54,7 @@ public class LtechFetchr {
         try {
             String url = "http://dev-exam.l-tech.ru/api/v1/posts";
             String jsonBody = getUrlString(url);
-            Log.i(TAG, "Rceived JSON: " + jsonBody);
+            Log.i(TAG, "Received JSON: " + jsonBody);
             //JSONObject jsonBodyObject = new JSONObject(jsonBody);
             JSONArray itemJsonArray =  new JSONArray(jsonBody);
             parseItems(items, itemJsonArray);
@@ -65,6 +65,22 @@ public class LtechFetchr {
             Log.e(TAG, "Failed to parse JSON", je);
         }
         return items;
+    }
+
+    public String fetchMask() {
+        String mask = null;
+        try {
+            String url = "http://dev-exam.l-tech.ru/api/v1/phone_masks";
+            String jsonBody = getUrlString(url);
+            Log.i(TAG, "Received mask JSON:" + jsonBody);
+            JSONObject maskJSONObject = new JSONObject(jsonBody);
+            mask = maskJSONObject.getString("phoneMask");
+        } catch (IOException ioe) {
+            Log.e(TAG, "Failed to fetch mask", ioe);
+        } catch (JSONException je) {
+            Log.e(TAG, "Failed to parse JSON", je);
+        }
+        return mask;
     }
 
     private void parseItems(List<GalleryItem> items, JSONArray jsonArray) throws JSONException {
@@ -96,6 +112,29 @@ public class LtechFetchr {
             Log.e(TAG, "Failed to parse Date from string", e);
         }
         return null;
+    }
+
+    public static String parseLTechMaskToRedMad(String inputMask) {
+        if(inputMask == null) {
+            Log.i(TAG, "Received Null mask");
+            return null;
+        }
+        char[] inputCharArr = inputMask.toCharArray();
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < inputCharArr.length; i++){
+            if(inputCharArr[i] == 'Х') {
+                builder.append('[');
+                builder.append('0');
+                while ((i+1<inputCharArr.length) && (inputCharArr[i+1] == 'Х')) {
+                    builder.append('0');
+                    i++;
+                }
+                builder.append(']');
+            } else {
+                builder.append(inputCharArr[i]);
+            }
+        }
+        return builder.toString();
     }
 
 }
