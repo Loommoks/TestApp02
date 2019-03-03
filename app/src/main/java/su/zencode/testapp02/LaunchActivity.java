@@ -2,6 +2,7 @@ package su.zencode.testapp02;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -30,11 +32,15 @@ public class LaunchActivity extends AppCompatActivity {
     private Button mLaunchButton;
     private EditText mPhoneField;
     private EditText mPasswordField;
+    private List<AuthorizationPair> mPairs;
+    private int mMaskCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch);
+
+        mPairs = AuthorizationLab.get(this).getPairs();
 
         new FetchMaskTask().execute();
 
@@ -69,6 +75,14 @@ public class LaunchActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             if (s != null) {
                 setupMask(s);
+                int code = getCodefromMask(s);
+                mMaskCode = code;
+                AuthorizationPair pair = getPairWithCode(code);
+                if (pair != null){
+                    mPhoneField.setText(pair.getPhone());
+                    mPasswordField.setText(pair.getPassword());
+                }
+
             } else {
                 Toast.makeText(LaunchActivity.this,
                         "Received null-phone-mask / No INTERNET connection",
@@ -81,9 +95,11 @@ public class LaunchActivity extends AppCompatActivity {
     private class AuthorizeTask extends AsyncTask<Void,Void,Boolean> {
         String mPhone;
         String mPassword;
+        int mCode;
 
         public AuthorizeTask(String phone, String password) {
-            mPhone = phone.replaceAll("[=\\-\\+()\\s]","");
+            mCode = mMaskCode;
+            mPhone = getClearPhoneBody(phone);
             mPassword = password;
         }
 
@@ -94,7 +110,6 @@ public class LaunchActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-
             String phone = mPhone;
             String password = mPassword;
             String resultString = null;
@@ -139,8 +154,11 @@ public class LaunchActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Boolean resultBoolean) {
             if(resultBoolean) {
+                //todo add Db check & update
+                if(AuthorizationLab.get(LaunchActivity.this).getPair(mCode) == null) {
+                    saveAuthData(mCode, mPhone, mPassword);
+                }
                 Toast.makeText(LaunchActivity.this, "Welcome", Toast.LENGTH_SHORT).show();
-                saveAuthData(mPhone, mPassword);
                 Intent intent = new Intent(LaunchActivity.this, ItemsGalleryActivity.class);
                 startActivity(intent);
             } else {
@@ -150,7 +168,35 @@ public class LaunchActivity extends AppCompatActivity {
         }
     }
 
-    private void saveAuthData(String phone, String password) {
+    @NonNull
+    private static String getClearPhoneBody(String phone) {
+        return phone.replaceAll("[=\\-\\+()\\s]","");
+    }
+
+    private static int getCodefromMask(String mask) {
+        String codeStr = mask.replaceAll("[=\\-\\+()\\sХ]","");
+        int code = Integer.parseInt(codeStr);
+        return code;
+    }
+
+    private AuthorizationPair getPairWithCode(int code) {
+
+        for (int i = 0; i < mPairs.size(); i++) {
+            if (mPairs.get(i).getInternationalCode() == code) {
+                return mPairs.get(i);
+            }
+        }
+        return null;
+    }
+
+    private void saveAuthData(int code, String phone, String password) {
+        AuthorizationLab.get(this).addPair(
+                new AuthorizationPair(
+                        code,
+                        phone,
+                        password
+                )
+        );
         Toast.makeText(this, "Received pahone: " + phone + ", and password: " + password + " to save", Toast.LENGTH_SHORT).show();
     }
 

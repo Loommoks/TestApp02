@@ -59,7 +59,7 @@ public class ItemsGalleryFragment extends Fragment {
             public void run() {
                 new FetchItemsUpdateTask().execute();
             }
-        },0,3000);
+        },0,10000);
         new FetchItemsTask().execute();
 
         Handler responseHandler = new Handler();
