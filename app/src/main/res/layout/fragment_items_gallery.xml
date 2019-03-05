@@ -7,7 +7,7 @@
     android:id="@+id/items_list_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ItemsGalleryActivity">
+    tools:context=".PostsGalleryActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,7 +41,7 @@
             android:id="@+id/items_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context=".ItemsGalleryActivity"
+            tools:context=".PostsGalleryActivity"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     </LinearLayout>

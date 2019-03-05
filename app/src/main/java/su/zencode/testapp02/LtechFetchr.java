@@ -17,8 +17,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import su.zencode.testapp02.DevExamRepositories.Post;
+
 public class LtechFetchr {
     private static final String TAG = "LtechFetchr";
+    private static final String LTECH_POSTS_URL = "http://dev-exam.l-tech.ru/api/v1/posts";
+    private static final String LTECH_MASK_URL = "http://dev-exam.l-tech.ru/api/v1/phone_masks";
+    private static final String LTECH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -49,29 +54,26 @@ public class LtechFetchr {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<GalleryItem> fetchItems() {
-        List<GalleryItem> items = new ArrayList<>();
+    public List<Post> fetchItems() {
+        List<Post> posts = new ArrayList<>();
         try {
-            String url = "http://dev-exam.l-tech.ru/api/v1/posts";
-            String jsonBody = getUrlString(url);
+            String jsonBody = getUrlString(LTECH_POSTS_URL);
             Log.i(TAG, "Received JSON: " + jsonBody);
-            //JSONObject jsonBodyObject = new JSONObject(jsonBody);
-            JSONArray itemJsonArray =  new JSONArray(jsonBody);
-            parseItems(items, itemJsonArray);
+            JSONArray postJsonArray =  new JSONArray(jsonBody);
+            parsePosts(posts, postJsonArray);
 
         } catch (IOException ioe) {
-            Log.e(TAG, "Failed to fetch items", ioe);
+            Log.e(TAG, "Failed to fetch posts", ioe);
         } catch (JSONException je) {
             Log.e(TAG, "Failed to parse JSON", je);
         }
-        return items;
+        return posts;
     }
 
     public String fetchMask() {
         String mask = null;
         try {
-            String url = "http://dev-exam.l-tech.ru/api/v1/phone_masks";
-            String jsonBody = getUrlString(url);
+            String jsonBody = getUrlString(LTECH_MASK_URL);
             Log.i(TAG, "Received mask JSON:" + jsonBody);
             JSONObject maskJSONObject = new JSONObject(jsonBody);
             mask = maskJSONObject.getString("phoneMask");
@@ -83,28 +85,28 @@ public class LtechFetchr {
         return mask;
     }
 
-    private void parseItems(List<GalleryItem> items, JSONArray jsonArray) throws JSONException {
+    private void parsePosts(List<Post> posts, JSONArray jsonArray) throws JSONException {
 
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject itemJsonObject = jsonArray.getJSONObject(i);
 
-            GalleryItem item = new GalleryItem();
+            Post post = new Post();
 
-            item.setId(itemJsonObject.getString("id"));
-            item.setTitle(itemJsonObject.getString("title"));
-            item.setText(itemJsonObject.getString("text"));
-            item.setImageUrl(itemJsonObject.getString("image"));
-            item.setSort(itemJsonObject.getInt("sort"));
+            post.setId(itemJsonObject.getString("id"));
+            post.setTitle(itemJsonObject.getString("title"));
+            post.setText(itemJsonObject.getString("text"));
+            post.setImageUrl(itemJsonObject.getString("image"));
+            post.setSort(itemJsonObject.getInt("sort"));
             String stringDate = itemJsonObject.getString("date");
-            item.setDate(convertToDate(stringDate));
+            post.setDate(convertToDate(stringDate));
 
-            items.add(item);
+            posts.add(post);
         }
     }
 
     private static Date convertToDate(String stringDate) {
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(LTECH_DATE_FORMAT);
         try {
             Date date = dateFormat.parse(stringDate);
             return date;

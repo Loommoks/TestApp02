@@ -19,13 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ItemsGalleryActivity" />
+        <activity android:name=".PostsGalleryActivity" />
         <activity android:name=".ItemDetailedActivity"
-            android:parentActivityName=".ItemsGalleryActivity"></activity>
-        <activity
-            android:name=".ItemDetailedPagerActivity"
-            android:parentActivityName=".ItemsGalleryActivity">
-        </activity>
+            android:parentActivityName=".PostsGalleryActivity"></activity>
     </application>
 
 </manifest>

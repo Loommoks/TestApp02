@@ -1,7 +1,5 @@
 package su.zencode.testapp02;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -12,7 +10,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -31,20 +28,23 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import su.zencode.testapp02.DevExamRepositories.Post;
+import su.zencode.testapp02.DevExamRepositories.PostsRepository;
 
-public class ItemsGalleryFragment extends Fragment {
-    private static final String TAG = "ItemsGalleryFragment";
+
+public class PostsGalleryFragment extends Fragment {
+    private static final String TAG = "PostsGalleryFragment";
     private RecyclerView mItemsRecyclerView;
     private ThumbnailDownloader<LtechItemsHolder> mThumbnailDownloader;
     private Button mServerSortButton;
     private Button mDateSortButton;
-    private ItemLab mItemLab;
+    private PostsRepository mPostsRepository;
     private LtechItemsAdapter mLtechItemsAdapter;
-    private Comparator<GalleryItem> mComparator;
+    private Comparator<Post> mComparator;
     private Timer mTimer;
 
-    public static ItemsGalleryFragment newInstance() {
-        return new ItemsGalleryFragment();
+    public static PostsGalleryFragment newInstance() {
+        return new PostsGalleryFragment();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ItemsGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        mItemLab = ItemLab.get(getActivity());
+        mPostsRepository = PostsRepository.get(getActivity());
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
             @Override
@@ -68,7 +68,7 @@ public class ItemsGalleryFragment extends Fragment {
                 new ThumbnailDownloader.ThumbnailDownloadListener<LtechItemsHolder>() {
                     @Override
                     public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap, String itemId) {
-                        mItemLab.updateItemBitmap(itemId, bitmap);
+                        mPostsRepository.updateItemBitmap(itemId, bitmap);
                         Drawable drawable = new BitmapDrawable(getResources(), bitmap);
                         itemHolder.bindDrawable(drawable);
                     }
@@ -87,15 +87,9 @@ public class ItemsGalleryFragment extends Fragment {
         mItemsRecyclerView = v.findViewById(R.id.items_recycler_view);
         mItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        /**
-         * AppCompatActivity activity = (AppCompatActivity) getActivity();
-        android.support.v7.app.ActionBar mActionBar = activity.getSupportActionBar();
-        mActionBar.setTitle("Trello");
-         */
-
         mServerSortButton = v.findViewById(R.id.server_sort_button);
         mServerSortButton.setOnClickListener(new OnButtonClicked());
-        mComparator = ItemLab.ServerSortComparator;
+        mComparator = PostsRepository.ServerSortComparator;
         mServerSortButton.setEnabled(false);
 
         mDateSortButton = v.findViewById(R.id.date_sort_button);
@@ -140,7 +134,7 @@ public class ItemsGalleryFragment extends Fragment {
 
     private void setupAdapter(){
         if(isAdded()) {
-            mLtechItemsAdapter = new LtechItemsAdapter(mItemLab.getItems());
+            mLtechItemsAdapter = new LtechItemsAdapter(mPostsRepository.getItems());
             mItemsRecyclerView.setAdapter(mLtechItemsAdapter);
         }
     }
@@ -148,7 +142,7 @@ public class ItemsGalleryFragment extends Fragment {
     private class LtechItemsHolder extends RecyclerView.ViewHolder
     implements View.OnClickListener {
         private View mItemView;
-        private GalleryItem mItem;
+        private Post mItem;
 
         public LtechItemsHolder(View itemView) {
             super(itemView);
@@ -156,14 +150,14 @@ public class ItemsGalleryFragment extends Fragment {
             mItemView = itemView;
         }
 
-        public void bindGalleryItem(GalleryItem item) {
+        public void bindGalleryItem(Post item) {
             mItem = item;
             TextView titleTextView = mItemView.findViewById(R.id.item_title_view);
             titleTextView.setText(item.getTitle());
             TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
             detailedTextView.setText(item.getText());
             TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
-            dateTextView.setText(ItemLab.parseDateforLayout(item.getDate()));
+            dateTextView.setText(PostsRepository.parseDateforLayout(item.getDate()));
             //todo remove below
             TextView sortTextView = mItemView.findViewById(R.id.item_sort_view);
             sortTextView.setText(Integer.toString(item.getSort()));
@@ -182,10 +176,10 @@ public class ItemsGalleryFragment extends Fragment {
     }
 
     private class LtechItemsAdapter extends RecyclerView.Adapter<LtechItemsHolder> {
-        private List<GalleryItem> mGalleryItems;
+        private List<Post> mPosts;
 
-        public LtechItemsAdapter(List<GalleryItem> galleryItems) {
-            mGalleryItems = galleryItems;
+        public LtechItemsAdapter(List<Post> posts) {
+            mPosts = posts;
         }
 
         @NonNull
@@ -198,12 +192,12 @@ public class ItemsGalleryFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull LtechItemsHolder ltechItemsHolder, int i) {
-            GalleryItem galleryItem = mGalleryItems.get(i);
-            ltechItemsHolder.bindGalleryItem(galleryItem);
+            Post post = mPosts.get(i);
+            ltechItemsHolder.bindGalleryItem(post);
 
-            if(mGalleryItems.get(i).getBitmap() == null) {
+            if(mPosts.get(i).getBitmap() == null) {
                 setupThumbnailPlaceholder(ltechItemsHolder);
-                getNewThumbnail(ltechItemsHolder, galleryItem);
+                getNewThumbnail(ltechItemsHolder, post);
             } else {
                 setupSavedThumbnail(ltechItemsHolder, i);
             }
@@ -211,10 +205,10 @@ public class ItemsGalleryFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return mGalleryItems.size();
+            return mPosts.size();
         }
 
-        private void getNewThumbnail(LtechItemsHolder holder, GalleryItem item) {
+        private void getNewThumbnail(LtechItemsHolder holder, Post item) {
             mThumbnailDownloader.queueThumbnail(holder, item.getImageUrl(), item.getId());
         }
 
@@ -227,21 +221,21 @@ public class ItemsGalleryFragment extends Fragment {
             holder.bindDrawable(
                     new BitmapDrawable(
                             getResources(),
-                            mGalleryItems.get(position).getBitmap()
+                            mPosts.get(position).getBitmap()
                     ));
         }
     }
 
-    private class FetchItemsTask extends AsyncTask<Void,Void,List<GalleryItem>> {
+    private class FetchItemsTask extends AsyncTask<Void,Void,List<Post>> {
         @Override
-        protected List<GalleryItem> doInBackground(Void... voids) {
-            List<GalleryItem> itemslist = new LtechFetchr().fetchItems();
+        protected List<Post> doInBackground(Void... voids) {
+            List<Post> itemslist = new LtechFetchr().fetchItems();
             return itemslist;
         }
 
         @Override
-        protected void onPostExecute(List<GalleryItem> galleryItems) {
-            mItemLab.setItems(galleryItems);
+        protected void onPostExecute(List<Post> posts) {
+            mPostsRepository.setItems(posts);
             updateSortState();
             setupAdapter();
         }
@@ -250,24 +244,24 @@ public class ItemsGalleryFragment extends Fragment {
     /** copypast */
     //Todo fix.it
 
-    private class FetchItemsUpdateTask extends AsyncTask<Void,Void,List<GalleryItem>> {
+    private class FetchItemsUpdateTask extends AsyncTask<Void,Void,List<Post>> {
         @Override
-        protected List<GalleryItem> doInBackground(Void... voids) {
-            List<GalleryItem> itemslist = new LtechFetchr().fetchItems();
+        protected List<Post> doInBackground(Void... voids) {
+            List<Post> itemslist = new LtechFetchr().fetchItems();
             return itemslist;
         }
 
         @Override
-        protected void onPostExecute(List<GalleryItem> galleryItems) {
-            updateModel(galleryItems);
+        protected void onPostExecute(List<Post> posts) {
+            updateModel(posts);
         }
     }
 
     /** end of copypast */
 
-    private void updateModel(List<GalleryItem> galleryItems) {
+    private void updateModel(List<Post> posts) {
 
-        mItemLab.smoothMergeNewItemList(galleryItems, mLtechItemsAdapter, mComparator);
+        mPostsRepository.smoothMergeNewItemList(posts, mLtechItemsAdapter, mComparator);
     }
 
     public class OnButtonClicked implements View.OnClickListener{
@@ -278,12 +272,12 @@ public class ItemsGalleryFragment extends Fragment {
                 case R.id.server_sort_button:
                     mServerSortButton.setEnabled(false);
                     mDateSortButton.setEnabled(true);
-                    mComparator = ItemLab.ServerSortComparator;
+                    mComparator = PostsRepository.ServerSortComparator;
                     break;
                 case R.id.date_sort_button:
                     mServerSortButton.setEnabled(true);
                     mDateSortButton.setEnabled(false);
-                    mComparator = ItemLab.DateSortComparator;
+                    mComparator = PostsRepository.DateSortComparator;
                     break;
             }
             updateSortState();
@@ -291,7 +285,7 @@ public class ItemsGalleryFragment extends Fragment {
     }
 
     private void updateSortState() {
-        mItemLab.sortItemsWith(mComparator);
+        mPostsRepository.sortItemsWith(mComparator);
         setupAdapter();
         //mLtechItemsAdapter.notifyDataSetChanged();
     }

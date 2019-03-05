@@ -19,12 +19,15 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import su.zencode.testapp02.DevExamRepositories.Post;
+import su.zencode.testapp02.DevExamRepositories.PostsRepository;
+
 public class ItemDetailedFragment extends Fragment {
 
     private static final String ARG_ITEM_ID = "item_id";
 
-    private GalleryItem mItem;
-    private List<GalleryItem> mItems;
+    private Post mItem;
+    private List<Post> mItems;
     private ImageView mItemImageView;
     private TextView mItemTitleView;
     private TextView mItemDescriprionView;
@@ -56,7 +59,7 @@ public class ItemDetailedFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_item_detailed, container, false);
 
         String itemId = getArguments().getString(ARG_ITEM_ID);
-        mItem = ItemLab.get(getActivity()).getItem(itemId);
+        mItem = PostsRepository.get(getActivity()).getItem(itemId);
         if (mItem == null) {
             onDestroy();
         }
@@ -73,7 +76,7 @@ public class ItemDetailedFragment extends Fragment {
             mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<ImageView>() {
                 @Override
                 public void onThumbnailDownloaded(ImageView target, Bitmap thumbnail, String id) {
-                    ItemLab.get(getActivity()).getItem(id).setBitmap(thumbnail);
+                    PostsRepository.get(getActivity()).getItem(id).setBitmap(thumbnail);
                     Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
                     mItemImageView.setImageDrawable(drawable);
                 }

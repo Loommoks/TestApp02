@@ -1,10 +1,10 @@
-package su.zencode.testapp02;
+package su.zencode.testapp02.DevExamRepositories;
 
 import android.graphics.Bitmap;
 
 import java.util.Date;
 
-public class GalleryItem {
+public class Post {
     private String mId;
     private String mTitle;
     private String mText;
@@ -13,7 +13,7 @@ public class GalleryItem {
     private Date mDate;
     private Bitmap mBitmap;
 
-    public GalleryItem() {
+    public Post() {
         mBitmap = null;
     }
 

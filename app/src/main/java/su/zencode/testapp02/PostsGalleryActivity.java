@@ -3,7 +3,7 @@ package su.zencode.testapp02;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
-public class ItemsGalleryActivity extends SingleFragmentActivity {
+public class PostsGalleryActivity extends SingleFragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -12,6 +12,6 @@ public class ItemsGalleryActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment() {
-        return ItemsGalleryFragment.newInstance();
+        return PostsGalleryFragment.newInstance();
     }
 }

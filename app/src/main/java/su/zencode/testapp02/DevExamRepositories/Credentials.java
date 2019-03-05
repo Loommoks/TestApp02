@@ -1,17 +1,17 @@
-package su.zencode.testapp02;
+package su.zencode.testapp02.DevExamRepositories;
 
-public class AuthorizationPair {
+public class Credentials {
     private int mInternationalCode;
     private String mPhone;
     protected String mPassword;
 
-    public AuthorizationPair(int internationalCode, String phone, String password) {
+    public Credentials(int internationalCode, String phone, String password) {
         mInternationalCode = internationalCode;
         mPhone = phone;
         mPassword = password;
     }
 
-    public int getInternationalCode() {
+    public int getCode() {
         return mInternationalCode;
     }
 

@@ -1,4 +1,4 @@
-package su.zencode.testapp02;
+package su.zencode.testapp02.DevExamRepositories;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,35 +12,35 @@ import su.zencode.testapp02.database.AuthorizationBaseHelper;
 import su.zencode.testapp02.database.AuthorizationDbScheme.PairTable;
 import su.zencode.testapp02.database.PairsCursorWrapper;
 
-public class AuthorizationLab {
-    private static AuthorizationLab sAuthorizationLab;
+public class AuthorizationsRepository {
+    private static AuthorizationsRepository sAuthorizationLab;
 
-    private List<AuthorizationPair> mAuthorizationPairs;
+    private List<Credentials> mCredentials;
 
     private Context mContext;
     private SQLiteDatabase mDatabase;
 
-    private AuthorizationLab(Context context) {
+    private AuthorizationsRepository(Context context) {
         mContext = context.getApplicationContext();
         mDatabase = new AuthorizationBaseHelper(mContext)
                 .getWritableDatabase();
-        mAuthorizationPairs = new ArrayList<>();
+        mCredentials = new ArrayList<>();
     }
 
-    public static AuthorizationLab get(Context context) {
+    public static AuthorizationsRepository create(Context context) {
         if(sAuthorizationLab == null) {
-            sAuthorizationLab = new AuthorizationLab(context);
+            sAuthorizationLab = new AuthorizationsRepository(context);
         }
         return sAuthorizationLab;
     }
 
-    public void addPair(AuthorizationPair pair) {
+    public void add(Credentials pair) {
         ContentValues values = getContentValues(pair);
         mDatabase.insert(PairTable.NAME, null, values);
     }
 
-    public List<AuthorizationPair> getPairs() {
-        List<AuthorizationPair> pairs = new ArrayList<>();
+    public List<Credentials> getAll() {
+        List<Credentials> pairs = new ArrayList<>();
 
         PairsCursorWrapper cursor = queryPairs(null, null);
 
@@ -57,7 +57,7 @@ public class AuthorizationLab {
         return pairs;
     }
 
-    public AuthorizationPair getPair(int code) {
+    public Credentials get(int code) {
         String codeStr = Integer.toString(code);
         PairsCursorWrapper cursor = queryPairs(
                 PairTable.Cols.INTERNATIONAL_CODE + " = ?",
@@ -76,9 +76,9 @@ public class AuthorizationLab {
         }
     }
 
-    private static ContentValues getContentValues(AuthorizationPair pair) {
+    private static ContentValues getContentValues(Credentials pair) {
         ContentValues values = new ContentValues();
-        values.put(PairTable.Cols.INTERNATIONAL_CODE, Integer.toString(pair.getInternationalCode()));
+        values.put(PairTable.Cols.INTERNATIONAL_CODE, Integer.toString(pair.getCode()));
         values.put(PairTable.Cols.PHONE, pair.getPhone());
         values.put(PairTable.Cols.PASSWORD, pair.getPassword());
         return values;

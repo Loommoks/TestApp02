@@ -1,4 +1,4 @@
-package su.zencode.testapp02;
+package su.zencode.testapp02.DevExamRepositories;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -12,40 +12,40 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-public class ItemLab {
-    private static ItemLab sItemLab;
-    private static final String TAG = ".ItemLab";
+public class PostsRepository {
+    private static PostsRepository sPostsRepository;
+    private static final String TAG = ".PostsRepository";
 
-    private List<GalleryItem> mItems;
-    //private ConcurrentArrayList<GalleryItem> mItems;
+    private List<Post> mItems;
+    //private ConcurrentArrayList<Post> mItems;
 
-    public static ItemLab get(Context context) {
-        if (sItemLab == null) {
-            sItemLab = new ItemLab(context);
+    public static PostsRepository get(Context context) {
+        if (sPostsRepository == null) {
+            sPostsRepository = new PostsRepository(context);
         }
 
-        return sItemLab;
+        return sPostsRepository;
     }
 
-    private ItemLab(Context context) {
+    private PostsRepository(Context context) {
         mItems = new ArrayList<>();
     }
 
-    public void setItems(List<GalleryItem> items) {
+    public void setItems(List<Post> items) {
         mItems = items;
     }
 
-    public List<GalleryItem> getItems() {
+    public List<Post> getItems() {
         return mItems;
     }
 
-    public GalleryItem getItem(int index) {
+    public Post getItem(int index) {
         return mItems.get(index);
     }
 
 
-    public GalleryItem getItem(String id) {
-        for (GalleryItem item :
+    public Post getItem(String id) {
+        for (Post item :
                 mItems) {
             if (item.getId().equals(id)) {
                 return item;
@@ -56,8 +56,8 @@ public class ItemLab {
     }
 
 
-    public void updateItem(int position, GalleryItem newItem) {
-        GalleryItem mItem = getItem(position);
+    public void updateItem(int position, Post newItem) {
+        Post mItem = getItem(position);
         mItem.setTitle(newItem.getTitle());
         mItem.setText(newItem.getText());
         if(!mItem.getImageUrl().equals(newItem.getImageUrl())){
@@ -69,22 +69,22 @@ public class ItemLab {
         mItem.setDate(newItem.getDate());
     }
 
-    public static Comparator<GalleryItem> ServerSortComparator = new Comparator<GalleryItem>() {
+    public static Comparator<Post> ServerSortComparator = new Comparator<Post>() {
         @Override
-        public int compare(GalleryItem o1, GalleryItem o2) {
+        public int compare(Post o1, Post o2) {
             return o1.getSort() - o2.getSort();
         }
     };
 
-    public static Comparator<GalleryItem> DateSortComparator = new Comparator<GalleryItem>() {
+    public static Comparator<Post> DateSortComparator = new Comparator<Post>() {
         @Override
-        public int compare(GalleryItem o1, GalleryItem o2) {
+        public int compare(Post o1, Post o2) {
             return o1.getDate().compareTo(o2.getDate());
         }
     };
 
     /**
-    public int listContainId(List<GalleryItem> newList, String id) {
+    public int listContainId(List<Post> newList, String id) {
         for (int i = 0; i < newList.size(); i++) {
             if (newList.get(i).getId().equals(id)) {
                 return i;
@@ -119,8 +119,8 @@ public class ItemLab {
         }
     }
 
-    public void smoothMergeNewItemList(List<GalleryItem> newList, RecyclerView.Adapter adapter,
-                                       Comparator<GalleryItem> comparator) {
+    public void smoothMergeNewItemList(List<Post> newList, RecyclerView.Adapter adapter,
+                                       Comparator<Post> comparator) {
 
         Collections.sort(newList, comparator);
 
@@ -161,7 +161,7 @@ public class ItemLab {
     }
 
 
-    public void sortItemsWith(Comparator<GalleryItem> comparator) {
+    public void sortItemsWith(Comparator<Post> comparator) {
         Collections.sort(mItems, comparator);
     }
 
