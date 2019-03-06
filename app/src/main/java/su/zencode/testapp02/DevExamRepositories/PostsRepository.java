@@ -17,7 +17,6 @@ public class PostsRepository {
     private static final String TAG = ".PostsRepository";
 
     private List<Post> mItems;
-    //private ConcurrentArrayList<Post> mItems;
 
     public static PostsRepository get(Context context) {
         if (sPostsRepository == null) {

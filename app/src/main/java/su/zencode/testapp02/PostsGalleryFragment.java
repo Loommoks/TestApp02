@@ -57,10 +57,10 @@ public class PostsGalleryFragment extends Fragment {
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                new FetchItemsUpdateTask().execute();
+                new FetchItemsTask(FetchItemsTask.UPDATE).execute();
             }
-        },0,10000);
-        new FetchItemsTask().execute();
+        },12000,10000);
+        new FetchItemsTask(FetchItemsTask.INITIALISE).execute();
 
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
@@ -115,7 +115,7 @@ public class PostsGalleryFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.refresh_list_button:
-                new FetchItemsUpdateTask().execute();
+                new FetchItemsTask(FetchItemsTask.UPDATE).execute();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -164,9 +164,6 @@ public class PostsGalleryFragment extends Fragment {
             detailedTextView.setText(item.getText());
             TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
             dateTextView.setText(PostsRepository.parseDateforLayout(item.getDate()));
-            //todo remove below
-            TextView sortTextView = mItemView.findViewById(R.id.item_sort_view);
-            sortTextView.setText(Integer.toString(item.getSort()));
         }
 
         public void bindDrawable(Drawable drawable) {
@@ -233,6 +230,15 @@ public class PostsGalleryFragment extends Fragment {
     }
 
     private class FetchItemsTask extends AsyncTask<Void,Void,List<Post>> {
+        public static final int INITIALISE = 0;
+        public static final int UPDATE = 1;
+        private int mOperationCode;
+
+
+        public FetchItemsTask(int operationCode) {
+            mOperationCode = operationCode;
+        }
+
         @Override
         protected List<Post> doInBackground(Void... voids) {
             List<Post> itemslist = new LtechFetchr().fetchPosts();
@@ -241,29 +247,19 @@ public class PostsGalleryFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Post> posts) {
-            mPostsRepository.setItems(posts);
-            updateSortState();
-            setupAdapter();
+            switch (mOperationCode) {
+                case INITIALISE:
+                    mPostsRepository.setItems(posts);
+                    updateSortState();
+                    setupAdapter();
+                    break;
+                case UPDATE:
+                    updateModel(posts);
+                    break;
+            }
+
         }
     }
-
-    /** copypast */
-    //Todo fix.it
-
-    private class FetchItemsUpdateTask extends AsyncTask<Void,Void,List<Post>> {
-        @Override
-        protected List<Post> doInBackground(Void... voids) {
-            List<Post> itemslist = new LtechFetchr().fetchPosts();
-            return itemslist;
-        }
-
-        @Override
-        protected void onPostExecute(List<Post> posts) {
-            updateModel(posts);
-        }
-    }
-
-    /** end of copypast */
 
     private void updateModel(List<Post> posts) {
 
@@ -293,6 +289,5 @@ public class PostsGalleryFragment extends Fragment {
     private void updateSortState() {
         mPostsRepository.sortItemsWith(mComparator);
         setupAdapter();
-        //mLtechItemsAdapter.notifyDataSetChanged();
     }
 }
