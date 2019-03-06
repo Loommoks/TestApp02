@@ -73,11 +73,4 @@ public class Post {
         mDate = date;
     }
 
-    //Todo Переопределить toString(), при необходимости
-    /** Тут
-    public String toString() {
-        return mTitle;
-    } */
-
-
 }

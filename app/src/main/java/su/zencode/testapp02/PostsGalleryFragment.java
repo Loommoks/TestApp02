@@ -67,10 +67,16 @@ public class PostsGalleryFragment extends Fragment {
         mThumbnailDownloader.setThumbnailDownloadListener(
                 new ThumbnailDownloader.ThumbnailDownloadListener<LtechItemsHolder>() {
                     @Override
-                    public void onThumbnailDownloaded(LtechItemsHolder itemHolder, Bitmap bitmap, String itemId) {
-                        mPostsRepository.updateItemBitmap(itemId, bitmap);
-                        Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-                        itemHolder.bindDrawable(drawable);
+                    public void onThumbnailDownloaded(
+                            LtechItemsHolder itemHolder,
+                            boolean targetChanged,
+                            Bitmap bitmap,
+                            String postId) {
+                        mPostsRepository.updateItemBitmap(postId, bitmap);
+                        if(!targetChanged) {
+                            Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                            itemHolder.bindDrawable(drawable);
+                        }
                     }
                 }
         );
@@ -170,7 +176,7 @@ public class PostsGalleryFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            Intent intent = ItemDetailedActivity.newIntent(getActivity(), mItem.getId());
+            Intent intent = PostActivity.newIntent(getActivity(), mItem.getId());
             startActivity(intent);
         }
     }
@@ -229,7 +235,7 @@ public class PostsGalleryFragment extends Fragment {
     private class FetchItemsTask extends AsyncTask<Void,Void,List<Post>> {
         @Override
         protected List<Post> doInBackground(Void... voids) {
-            List<Post> itemslist = new LtechFetchr().fetchItems();
+            List<Post> itemslist = new LtechFetchr().fetchPosts();
             return itemslist;
         }
 
@@ -247,7 +253,7 @@ public class PostsGalleryFragment extends Fragment {
     private class FetchItemsUpdateTask extends AsyncTask<Void,Void,List<Post>> {
         @Override
         protected List<Post> doInBackground(Void... voids) {
-            List<Post> itemslist = new LtechFetchr().fetchItems();
+            List<Post> itemslist = new LtechFetchr().fetchPosts();
             return itemslist;
         }
 

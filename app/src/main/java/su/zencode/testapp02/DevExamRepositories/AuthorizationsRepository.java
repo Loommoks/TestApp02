@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import su.zencode.testapp02.database.AuthorizationBaseHelper;
-import su.zencode.testapp02.database.AuthorizationDbScheme.PairTable;
+import su.zencode.testapp02.database.AuthorizationDbScheme.CredentialsTable;
 import su.zencode.testapp02.database.PairsCursorWrapper;
 
 public class AuthorizationsRepository {
@@ -36,7 +36,7 @@ public class AuthorizationsRepository {
 
     public void add(Credentials pair) {
         ContentValues values = getContentValues(pair);
-        mDatabase.insert(PairTable.NAME, null, values);
+        mDatabase.insert(CredentialsTable.NAME, null, values);
     }
 
     public List<Credentials> getAll() {
@@ -60,7 +60,7 @@ public class AuthorizationsRepository {
     public Credentials get(int code) {
         String codeStr = Integer.toString(code);
         PairsCursorWrapper cursor = queryPairs(
-                PairTable.Cols.INTERNATIONAL_CODE + " = ?",
+                CredentialsTable.Cols.INTERNATIONAL_CODE + " = ?",
                 new String[] {codeStr}
         );
 
@@ -78,15 +78,15 @@ public class AuthorizationsRepository {
 
     private static ContentValues getContentValues(Credentials pair) {
         ContentValues values = new ContentValues();
-        values.put(PairTable.Cols.INTERNATIONAL_CODE, Integer.toString(pair.getCode()));
-        values.put(PairTable.Cols.PHONE, pair.getPhone());
-        values.put(PairTable.Cols.PASSWORD, pair.getPassword());
+        values.put(CredentialsTable.Cols.INTERNATIONAL_CODE, Integer.toString(pair.getCode()));
+        values.put(CredentialsTable.Cols.PHONE, pair.getPhone());
+        values.put(CredentialsTable.Cols.PASSWORD, pair.getPassword());
         return values;
     }
 
     private PairsCursorWrapper queryPairs(String whereClause, String[] whereArgs) {
         Cursor cursor = mDatabase.query(
-                PairTable.NAME,
+                CredentialsTable.NAME,
                 null,
                 whereClause,
                 whereArgs,

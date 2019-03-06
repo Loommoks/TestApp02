@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".PostsGalleryActivity" />
-        <activity android:name=".ItemDetailedActivity"
+        <activity android:name=".PostActivity"
             android:parentActivityName=".PostsGalleryActivity"></activity>
     </application>
 

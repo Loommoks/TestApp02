@@ -7,22 +7,15 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.List;
 
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import su.zencode.testapp02.DevExamRepositories.Credentials;
 import su.zencode.testapp02.DevExamRepositories.AuthorizationsRepository;
+import su.zencode.testapp02.LtechApiClient.DevExamApiClient;
 
 public class AuthorizeService{
     public static final String TAG = "AuthorizeService";
-    private static final String LTECH_AUTHORIZATION_URL =
-            "http://dev-exam.l-tech.ru/api/v1/auth";
-
+    private static final String LTECH_SUCCESS_AUTHORIZATION_JSON_TITLE = "success";
 
     Credentials mCredentials;
 
@@ -30,9 +23,10 @@ public class AuthorizeService{
         mCredentials = credentials;
     }
 
-    public static Credentials getCodeCredentials(Context context, int code) {
+    public static Credentials getCredentialsWithCode(Context context, int code) {
+        List<Credentials> credentials =
+                AuthorizationsRepository.create(context).getAll();
 
-        List<Credentials> credentials = AuthorizationsRepository.create(context).getAll();
         for (int i = 0; i < credentials.size(); i++) {
             if (credentials.get(i).getCode() == code) {
                 return credentials.get(i);
@@ -43,27 +37,15 @@ public class AuthorizeService{
 
     public Boolean tryRemoteAuthorization() {
 
-        OkHttpClient client = new OkHttpClient();
-
-        RequestBody body = new FormBody.Builder()
-                .addEncoded("phone", mCredentials.getPhone())
-                .addEncoded("password", mCredentials.getPassword())
-                .build();
-        Request request = new Request.Builder()
-                .url(LTECH_AUTHORIZATION_URL)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .post(body)
-                .build();
+        String resultString = DevExamApiClient.tryAuthorize(
+                mCredentials.getPhone(),
+                mCredentials.getPassword());
 
         try {
-            Response response = client.newCall(request).execute();
-            String resultString = response.body().string();
             JSONObject jsonResponseBody = new JSONObject(resultString);
-            return jsonResponseBody.getBoolean("success");
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to call POST request", e);
+            return jsonResponseBody.getBoolean(LTECH_SUCCESS_AUTHORIZATION_JSON_TITLE);
         } catch (JSONException jse) {
-            Log.e(TAG, "Failed to parse JSON respone", jse);
+            Log.e(TAG, "Failed to parse Json response", jse);
         }
 
         return false;

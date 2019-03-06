@@ -4,7 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import su.zencode.testapp02.database.AuthorizationDbScheme.PairTable;
+import su.zencode.testapp02.database.AuthorizationDbScheme.CredentialsTable;
 
 public class AuthorizationBaseHelper extends SQLiteOpenHelper {
     private static final int VERSION = 1;
@@ -16,11 +16,11 @@ public class AuthorizationBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table " + PairTable.NAME + "(" +
+        db.execSQL("create table " + CredentialsTable.NAME + "(" +
                 " _id integer primary key autoincrement, " +
-                PairTable.Cols.INTERNATIONAL_CODE + ", " +
-                PairTable.Cols.PHONE + ", " +
-                PairTable.Cols.PASSWORD +
+                CredentialsTable.Cols.INTERNATIONAL_CODE + ", " +
+                CredentialsTable.Cols.PHONE + ", " +
+                CredentialsTable.Cols.PASSWORD +
                 ")"
         );
     }

@@ -4,31 +4,59 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import su.zencode.testapp02.LtechFetchr;
 
 public class DevExamApiClient{
     private static final String TAG = "AuthorizeService";
 
+    private static byte[] getUrlBytes(String urlSpec) throws IOException {
+        URL url = new URL(urlSpec);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream in = connection.getInputStream();
+
+            if(connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new IOException(connection.getResponseMessage() +
+                        ": with " + urlSpec);
+            }
+
+            int bytesRead = 0;
+            byte[] buffer = new byte[1024];
+            while ((bytesRead = in.read(buffer)) > 0 ) {
+                out.write(buffer, 0, bytesRead);
+            }
+            out.close();
+            return out.toByteArray();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    public static String getUrlString(String urlSpec) throws IOException {
+        return new String(getUrlBytes(urlSpec));
+    }
+
     public Bitmap loadThumbnail(String urlFull) throws IOException {
-        byte[] bitmapBytes = new LtechFetchr().getUrlBytes(urlFull);
+        byte[] bitmapBytes = getUrlBytes(urlFull);
         final Bitmap bitmap = BitmapFactory
                 .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
         Log.i(TAG, "Bitmap created from URL: " + urlFull);
         return bitmap;
     }
 
-    public Boolean tryAuthorize(String phone, String password) {
-        String resultString = null;
+    public static String tryAuthorize(String phone, String password) {
 
         OkHttpClient client = new OkHttpClient();
 
@@ -37,35 +65,20 @@ public class DevExamApiClient{
                 .addEncoded("password", password)
                 .build();
         Request request = new Request.Builder()
-                .url("http://dev-exam.l-tech.ru/api/v1/auth")
+                .url(URLsMap.Endpoints.AUTHORIZATION)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .post(body)
                 .build();
 
-        Response response = null;
-        boolean success = false;
-
         try {
-            response = client.newCall(request).execute();
+            Response response = client.newCall(request).execute();
+            String resultString = response.body().string();
+            return resultString;
         } catch (IOException e) {
-            Log.e(TAG, "failed to call POST request", e);
+            Log.e(TAG, "Failed to call POST request", e);
         }
 
-        try {
-            resultString = response.body().string();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            JSONObject jsonResponseBody = new JSONObject(resultString);
-            success = jsonResponseBody.getBoolean("success");
-        } catch (JSONException jse) {
-            Log.e(TAG, "Failde to parse JSON respone", jse);
-        }
-
-        return success;
+        return null;
     }
-
 
 }

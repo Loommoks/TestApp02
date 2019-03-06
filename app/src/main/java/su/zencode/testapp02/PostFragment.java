@@ -22,7 +22,7 @@ import java.util.List;
 import su.zencode.testapp02.DevExamRepositories.Post;
 import su.zencode.testapp02.DevExamRepositories.PostsRepository;
 
-public class ItemDetailedFragment extends Fragment {
+public class PostFragment extends Fragment {
 
     private static final String ARG_ITEM_ID = "item_id";
 
@@ -35,11 +35,11 @@ public class ItemDetailedFragment extends Fragment {
     private ThumbnailDownloader<ImageView> mThumbnailDownloader;
 
 
-    public static ItemDetailedFragment newInstance(String itemId) {
+    public static PostFragment newInstance(String itemId) {
         Bundle args = new Bundle();
         args.putString(ARG_ITEM_ID, itemId);
 
-        ItemDetailedFragment fragment = new ItemDetailedFragment();
+        PostFragment fragment = new PostFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,13 +73,15 @@ public class ItemDetailedFragment extends Fragment {
 
         mItemImageView = v.findViewById(R.id.item_image);
         if(mItem.getBitmap() == null) {
-            mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<ImageView>() {
-                @Override
-                public void onThumbnailDownloaded(ImageView target, Bitmap thumbnail, String id) {
-                    PostsRepository.get(getActivity()).getItem(id).setBitmap(thumbnail);
-                    Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
-                    mItemImageView.setImageDrawable(drawable);
-                }
+            mThumbnailDownloader.setThumbnailDownloadListener(
+                    new ThumbnailDownloader.ThumbnailDownloadListener<ImageView>() {
+                        @Override
+                        public void onThumbnailDownloaded(
+                                ImageView target,boolean targetChanged, Bitmap thumbnail, String id) {
+                            PostsRepository.get(getActivity()).getItem(id).setBitmap(thumbnail);
+                            Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
+                            target.setImageDrawable(drawable);
+                        }
             });
             mThumbnailDownloader.start();
             mThumbnailDownloader.getLooper();

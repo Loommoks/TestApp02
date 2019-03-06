@@ -19,7 +19,7 @@ import su.zencode.testapp02.DevExamRepositories.AuthorizationsRepository;
 
 import static su.zencode.testapp02.AuthorizeService.getPhoneClear;
 import static su.zencode.testapp02.AuthorizeService.getMaskCode;
-import static su.zencode.testapp02.AuthorizeService.getCodeCredentials;
+import static su.zencode.testapp02.AuthorizeService.getCredentialsWithCode;
 
 
 public class LaunchActivity extends AppCompatActivity {
@@ -66,7 +66,7 @@ public class LaunchActivity extends AppCompatActivity {
                 setupMask(s);
                 int code = getMaskCode(s);
                 mMaskCode = code;
-                Credentials pair = getCodeCredentials(LaunchActivity.this, code);
+                Credentials pair = getCredentialsWithCode(LaunchActivity.this, code);
                 if (pair != null){
                     mPhoneField.setText(pair.getPhone());
                     mPasswordField.setText(pair.getPassword());
@@ -100,9 +100,6 @@ public class LaunchActivity extends AppCompatActivity {
                     saveAuthData(mCredentials);
                 }
 
-                Toast.makeText(LaunchActivity.this,
-                        "Welcome", Toast.LENGTH_SHORT).show();
-
                 Intent intent = new Intent(LaunchActivity.this,
                         PostsGalleryActivity.class);
                 startActivity(intent);
@@ -119,11 +116,6 @@ public class LaunchActivity extends AppCompatActivity {
     private void saveAuthData(Credentials credentials) {
         AuthorizationsRepository.create(this).add(
                 credentials);
-        Toast.makeText(this,
-                "Received pahone: " + credentials.getPhone()
-                + ", and password: " + credentials.getPassword()
-                + " to save", Toast.LENGTH_SHORT
-        ).show();
     }
 
     private void setupMask(String mask) {

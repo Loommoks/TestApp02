@@ -83,16 +83,6 @@ public class PostsRepository {
         }
     };
 
-    /**
-    public int listContainId(List<Post> newList, String id) {
-        for (int i = 0; i < newList.size(); i++) {
-            if (newList.get(i).getId().equals(id)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-     */
     public int getItemPosition(String id) {
         for (int i = 0; i < mItems.size(); i++) {
             if (mItems.get(i).getId().equals(id)){
@@ -159,7 +149,6 @@ public class PostsRepository {
 
         }
     }
-
 
     public void sortItemsWith(Comparator<Post> comparator) {
         Collections.sort(mItems, comparator);

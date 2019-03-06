@@ -1,7 +1,6 @@
 package su.zencode.testapp02;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -11,20 +10,22 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import su.zencode.testapp02.DevExamRepositories.Post;
+import su.zencode.testapp02.LtechApiClient.DevExamApiClient;
+import su.zencode.testapp02.LtechApiClient.URLsMap;
+
 public class ThumbnailDownloader<T> extends HandlerThread {
     private static final String TAG = "ThumbnailDownloader";
     private static final int MESSAGE_DOWNLOAD = 0;
-    private static final String BASE_URL = "http://dev-exam.l-tech.ru";
 
     private boolean mHasQuit = false;
     private Handler mRequestHandler;
-    private ConcurrentMap<T,String> mRequestMap = new ConcurrentHashMap<>();
-    private ConcurrentMap<T,String> mReqestIdMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<T,Post> mRequestMap = new ConcurrentHashMap<>();
     private Handler mResponseHandler;
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
     public interface ThumbnailDownloadListener<T> {
-        void onThumbnailDownloaded(T target, Bitmap thumbnail, String id);
+        void onThumbnailDownloaded(T target, boolean targetChanged, Bitmap thumbnail, String id);
     }
 
     public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> listener) {
@@ -61,10 +62,11 @@ public class ThumbnailDownloader<T> extends HandlerThread {
 
         if(url == null) {
             mRequestMap.remove(target);
-            mReqestIdMap.remove(target);
         } else {
-            mRequestMap.put(target, url);
-            mReqestIdMap.put(target, containerId);
+            Post postContainer = new Post();
+            postContainer.setImageUrl(url);
+            postContainer.setId(containerId);
+            mRequestMap.put(target, postContainer);
             mRequestHandler.obtainMessage(MESSAGE_DOWNLOAD, target)
                     .sendToTarget();
         }
@@ -73,38 +75,49 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     public void clearQueue() {
         mResponseHandler.removeMessages(MESSAGE_DOWNLOAD);
         mRequestMap.clear();
-        mReqestIdMap.clear();
     }
 
     private void handleRequest(final T target) {
+
+        final Post postContainer = mRequestMap.get(target);
+
+        if (mRequestMap.get(target) == null) {
+            return;
+        }
+
+        final String url = postContainer.getImageUrl();
+        final String urlFull = URLsMap.Endpoints.BASE_URL + url;
+        final String postId = postContainer.getId();
+
+
         try {
-            final String url = mRequestMap.get(target);
-            final String containerId = mReqestIdMap.get(target);
-            final String urlFull = BASE_URL + url;
+            Bitmap bitmap = new DevExamApiClient().loadThumbnail(urlFull);
 
-            if (mRequestMap.get(target) == null) {
-                return;
-            }
-
-            byte[] bitmapBytes = new LtechFetchr().getUrlBytes(urlFull);
-            final Bitmap bitmap = BitmapFactory
-                    .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
-            Log.i(TAG, "Bitmap created from URL: " + urlFull);
-
-            mResponseHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if(mRequestMap.get(target) != url || mHasQuit) {
-                        return;
-                    }
-
-                    mRequestMap.remove(target);
-                    mReqestIdMap.remove(target);
-                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap,containerId);
-                }
-            });
+            postResponse(target, postId, bitmap);
         } catch (IOException ioe) {
             Log.e(TAG, "Error downloading image", ioe);
         }
+    }
+
+    private void postResponse(final T target, final String containerId, final Bitmap bitmap) {
+        mResponseHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(mHasQuit) {
+                    return;
+                }
+
+                boolean targetChanged = true;
+                if(mRequestMap.get(target).getId().equals(containerId)) {
+                    mRequestMap.remove(target);
+                    targetChanged = false;
+                }
+                mThumbnailDownloadListener.onThumbnailDownloaded(
+                        target,
+                        targetChanged,
+                        bitmap,
+                        containerId);
+            }
+        });
     }
 }

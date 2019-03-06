@@ -4,7 +4,7 @@ import android.database.Cursor;
 import android.database.CursorWrapper;
 
 import su.zencode.testapp02.DevExamRepositories.Credentials;
-import su.zencode.testapp02.database.AuthorizationDbScheme.PairTable;
+import su.zencode.testapp02.database.AuthorizationDbScheme.CredentialsTable;
 
 public class PairsCursorWrapper extends CursorWrapper {
     public PairsCursorWrapper(Cursor cursor) {
@@ -12,14 +12,13 @@ public class PairsCursorWrapper extends CursorWrapper {
     }
 
     public Credentials getPair() {
-        // todo getInt | getString
-        int code = getInt(getColumnIndex(PairTable.Cols.INTERNATIONAL_CODE));
-        String phone = getString(getColumnIndex(PairTable.Cols.PHONE));
-        String password = getString(getColumnIndex(PairTable.Cols.PASSWORD));
+        int code = getInt(getColumnIndex(CredentialsTable.Cols.INTERNATIONAL_CODE));
+        String phone = getString(getColumnIndex(CredentialsTable.Cols.PHONE));
+        String password = getString(getColumnIndex(CredentialsTable.Cols.PASSWORD));
 
-        Credentials pair = new Credentials(
+        Credentials credentials = new Credentials(
                 code, phone, password);
 
-        return pair;
+        return credentials;
     }
 }
