@@ -27,7 +27,6 @@ public class PostFragment extends Fragment {
     private static final String ARG_ITEM_ID = "item_id";
 
     private Post mItem;
-    private List<Post> mItems;
     private ImageView mItemImageView;
     private TextView mItemTitleView;
     private TextView mItemDescriprionView;
@@ -60,14 +59,11 @@ public class PostFragment extends Fragment {
 
         String itemId = getArguments().getString(ARG_ITEM_ID);
         mItem = PostsRepository.get(getActivity()).getItem(itemId);
-        if (mItem == null) {
-            onDestroy();
-        }
-
 
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         mActionBar = activity.getSupportActionBar();
-        mActionBar.setTitle(mItem.getTitle());
+        String title = mItem.getTitle();
+        mActionBar.setTitle(title);
 
         Toast.makeText(getActivity(), mItem.getTitle(), Toast.LENGTH_LONG).show();
 

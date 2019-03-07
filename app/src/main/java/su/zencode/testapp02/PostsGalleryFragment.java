@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Timer;
@@ -147,34 +149,40 @@ public class PostsGalleryFragment extends Fragment {
 
     private class LtechItemsHolder extends RecyclerView.ViewHolder
     implements View.OnClickListener {
-        private View mItemView;
-        private Post mItem;
+        private View mPostView;
+        private Post mPost;
+        private int mPosition;
 
-        public LtechItemsHolder(View itemView) {
-            super(itemView);
-            itemView.setOnClickListener(this);
-            mItemView = itemView;
+        public LtechItemsHolder(View postView) {
+            super(postView);
+            postView.setOnClickListener(this);
+            mPostView = postView;
         }
 
-        public void bindGalleryItem(Post item) {
-            mItem = item;
-            TextView titleTextView = mItemView.findViewById(R.id.item_title_view);
-            titleTextView.setText(item.getTitle());
-            TextView detailedTextView = mItemView.findViewById(R.id.item_detailed_text);
-            detailedTextView.setText(item.getText());
-            TextView dateTextView = mItemView.findViewById(R.id.item_date_view);
-            dateTextView.setText(PostsRepository.parseDateforLayout(item.getDate()));
+        public void bindGalleryItem(Post post, int position) {
+            mPosition = position;
+            mPost = post;
+            TextView titleTextView = mPostView.findViewById(R.id.item_title_view);
+            titleTextView.setText(post.getTitle());
+            TextView detailedTextView = mPostView.findViewById(R.id.item_detailed_text);
+            detailedTextView.setText(post.getText());
+            TextView dateTextView = mPostView.findViewById(R.id.item_date_view);
+            dateTextView.setText(PostsRepository.parseDateforLayout(post.getDate()));
         }
 
         public void bindDrawable(Drawable drawable) {
-            ImageView imageView = mItemView.findViewById(R.id.item_image_view);
+            ImageView imageView = mPostView.findViewById(R.id.item_image_view);
             imageView.setImageDrawable(drawable);
         }
 
         @Override
         public void onClick(View v) {
-            Intent intent = PostActivity.newIntent(getActivity(), mItem.getId());
-            startActivity(intent);
+            String id = mPost.getId();
+            if ((mPost != null) && (mPostsRepository.getItem(mPosition) == mPost) &&
+                    (!mPostsRepository.getItemLockState(id))) {
+                Intent intent = PostActivity.newIntent(getActivity(), id);
+                startActivity(intent);
+            }
         }
     }
 
@@ -196,7 +204,7 @@ public class PostsGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull LtechItemsHolder ltechItemsHolder, int i) {
             Post post = mPosts.get(i);
-            ltechItemsHolder.bindGalleryItem(post);
+            ltechItemsHolder.bindGalleryItem(post, i);
 
             if(mPosts.get(i).getBitmap() == null) {
                 setupThumbnailPlaceholder(ltechItemsHolder);
@@ -226,6 +234,15 @@ public class PostsGalleryFragment extends Fragment {
                             getResources(),
                             mPosts.get(position).getBitmap()
                     ));
+        }
+
+        public void updatePostList(List<Post> posts) {
+            final PostDiffCallback diffCallback = new PostDiffCallback(this.mPosts, posts);
+            final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
+
+            this.mPosts.clear();
+            this.mPosts.addAll(posts);
+            diffResult.dispatchUpdatesTo(this);
         }
     }
 
@@ -262,8 +279,9 @@ public class PostsGalleryFragment extends Fragment {
     }
 
     private void updateModel(List<Post> posts) {
-
-        mPostsRepository.smoothMergeNewItemList(posts, mLtechItemsAdapter, mComparator);
+        Collections.sort(posts, mComparator);
+        mLtechItemsAdapter.updatePostList(posts);
+        //mPostsRepository.smoothMergeNewItemList(posts, mLtechItemsAdapter, mComparator);
     }
 
     public class OnButtonClicked implements View.OnClickListener{

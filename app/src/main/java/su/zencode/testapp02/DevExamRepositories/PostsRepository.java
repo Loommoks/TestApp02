@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class PostsRepository {
@@ -17,6 +18,7 @@ public class PostsRepository {
     private static final String TAG = ".PostsRepository";
 
     private List<Post> mItems;
+    private HashMap<String, Boolean> mLock;
 
     public static PostsRepository get(Context context) {
         if (sPostsRepository == null) {
@@ -28,6 +30,7 @@ public class PostsRepository {
 
     private PostsRepository(Context context) {
         mItems = new ArrayList<>();
+        mLock = new HashMap<>();
     }
 
     public void setItems(List<Post> items) {
@@ -57,6 +60,7 @@ public class PostsRepository {
 
     public void updateItem(int position, Post newItem) {
         Post mItem = getItem(position);
+        mLock.put(mItem.getId(),true);
         mItem.setTitle(newItem.getTitle());
         mItem.setText(newItem.getText());
         if(!mItem.getImageUrl().equals(newItem.getImageUrl())){
@@ -66,6 +70,7 @@ public class PostsRepository {
         }
         mItem.setSort(newItem.getSort());
         mItem.setDate(newItem.getDate());
+        mLock.remove(mItem.getId());
     }
 
     public static Comparator<Post> ServerSortComparator = new Comparator<Post>() {
@@ -135,12 +140,14 @@ public class PostsRepository {
             }
 
             if (comparator.compare(mItems.get(i), newList.get(i)) == 0) {
+                mLock.put(mItems.get(i).getId(),true);
                 mItems.add(i, newList.get(i));
                 adapter.notifyItemInserted(i);
                 continue;
             }
 
             if (comparator.compare(mItems.get(i), newList.get(i)) > 0) {
+                mLock.put(mItems.get(i).getId(),true);
                 mItems.add(i, newList.get(i));
                 adapter.notifyItemInserted(i);
                 continue;
@@ -151,6 +158,12 @@ public class PostsRepository {
 
     public void sortItemsWith(Comparator<Post> comparator) {
         Collections.sort(mItems, comparator);
+    }
+
+    public boolean getItemLockState(String itemId) {
+        Post post = getItem(itemId);
+        if(mLock.get(post) != null) return true;
+         else return false;
     }
 
 
