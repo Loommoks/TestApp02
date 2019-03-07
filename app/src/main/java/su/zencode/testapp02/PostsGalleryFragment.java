@@ -177,9 +177,9 @@ public class PostsGalleryFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
+            if(mPost == null) return;
             String id = mPost.getId();
-            if ((mPost != null) && (mPostsRepository.getItem(mPosition) == mPost) &&
-                    (!mPostsRepository.getItemLockState(id))) {
+            if (mPostsRepository.getItem(mPosition) == mPost) {
                 Intent intent = PostActivity.newIntent(getActivity(), id);
                 startActivity(intent);
             }
@@ -237,6 +237,7 @@ public class PostsGalleryFragment extends Fragment {
         }
 
         public void updatePostList(List<Post> posts) {
+
             final PostDiffCallback diffCallback = new PostDiffCallback(this.mPosts, posts);
             final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
 
@@ -258,8 +259,7 @@ public class PostsGalleryFragment extends Fragment {
 
         @Override
         protected List<Post> doInBackground(Void... voids) {
-            List<Post> itemslist = new LtechFetchr().fetchPosts();
-            return itemslist;
+            return new LtechFetchr().fetchPosts();
         }
 
         @Override
@@ -281,7 +281,6 @@ public class PostsGalleryFragment extends Fragment {
     private void updateModel(List<Post> posts) {
         Collections.sort(posts, mComparator);
         mLtechItemsAdapter.updatePostList(posts);
-        //mPostsRepository.smoothMergeNewItemList(posts, mLtechItemsAdapter, mComparator);
     }
 
     public class OnButtonClicked implements View.OnClickListener{

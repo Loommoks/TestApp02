@@ -17,8 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-
 import su.zencode.testapp02.DevExamRepositories.Post;
 import su.zencode.testapp02.DevExamRepositories.PostsRepository;
 
@@ -81,9 +79,11 @@ public class PostFragment extends Fragment {
             });
             mThumbnailDownloader.start();
             mThumbnailDownloader.getLooper();
-            mThumbnailDownloader.queueThumbnail(mItemImageView, mItem.getImageUrl(), mItem.getId());
+            mThumbnailDownloader.queueThumbnail(
+                    mItemImageView, mItem.getImageUrl(), mItem.getId());
         } else {
-            mItemImageView.setImageDrawable(new BitmapDrawable(getResources(), mItem.getBitmap()));
+            mItemImageView.setImageDrawable(
+                    new BitmapDrawable(getResources(), mItem.getBitmap()));
         }
 
 
