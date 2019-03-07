@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import su.zencode.testapp02.DevExamRepositories.Post;
 import su.zencode.testapp02.DevExamRepositories.PostsRepository;
@@ -62,8 +61,6 @@ public class PostFragment extends Fragment {
         mActionBar = activity.getSupportActionBar();
         String title = mItem.getTitle();
         mActionBar.setTitle(title);
-
-        Toast.makeText(getActivity(), mItem.getTitle(), Toast.LENGTH_LONG).show();
 
         mItemImageView = v.findViewById(R.id.item_image);
         if(mItem.getBitmap() == null) {

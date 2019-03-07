@@ -66,6 +66,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             Post postContainer = new Post();
             postContainer.setImageUrl(url);
             postContainer.setId(containerId);
+            if(mRequestHandler == null) return;
             mRequestMap.put(target, postContainer);
             mRequestHandler.obtainMessage(MESSAGE_DOWNLOAD, target)
                     .sendToTarget();

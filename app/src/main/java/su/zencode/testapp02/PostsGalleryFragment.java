@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,7 +23,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Timer;
@@ -177,10 +175,10 @@ public class PostsGalleryFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            if(mPost == null) return;
-            String id = mPost.getId();
+            if(mPost == null || mPostsRepository.getItemLockState(mPost.getId())) return;
+
             if (mPostsRepository.getItem(mPosition) == mPost) {
-                Intent intent = PostActivity.newIntent(getActivity(), id);
+                Intent intent = PostActivity.newIntent(getActivity(), mPost.getId());
                 startActivity(intent);
             }
         }
@@ -235,16 +233,6 @@ public class PostsGalleryFragment extends Fragment {
                             mPosts.get(position).getBitmap()
                     ));
         }
-
-        public void updatePostList(List<Post> posts) {
-
-            final PostDiffCallback diffCallback = new PostDiffCallback(this.mPosts, posts);
-            final DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffCallback);
-
-            this.mPosts.clear();
-            this.mPosts.addAll(posts);
-            diffResult.dispatchUpdatesTo(this);
-        }
     }
 
     private class FetchItemsTask extends AsyncTask<Void,Void,List<Post>> {
@@ -279,8 +267,7 @@ public class PostsGalleryFragment extends Fragment {
     }
 
     private void updateModel(List<Post> posts) {
-        Collections.sort(posts, mComparator);
-        mLtechItemsAdapter.updatePostList(posts);
+       mPostsRepository.smoothMergeNewItemList(posts, mLtechItemsAdapter, mComparator);
     }
 
     public class OnButtonClicked implements View.OnClickListener{

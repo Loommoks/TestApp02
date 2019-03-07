@@ -36,6 +36,7 @@ public class PostsRepository {
     public void setItems(List<Post> items) {
         mItems = items;
         mLock = new HashMap<>();
+
     }
 
     public List<Post> getItems() {

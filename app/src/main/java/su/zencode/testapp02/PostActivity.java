@@ -19,10 +19,4 @@ public class PostActivity extends SingleFragmentActivity {
         String itemId = getIntent().getStringExtra(EXTRA_ITEM_ID);
         return PostFragment.newInstance(itemId);
     }
-
-    /**@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_item_detailed);
-    }*/
 }
