@@ -41,6 +41,8 @@ public class AuthorizeService{
                 mCredentials.getPhone(),
                 mCredentials.getPassword());
 
+        if (resultString == null) return null;
+
         try {
             JSONObject jsonResponseBody = new JSONObject(resultString);
             return jsonResponseBody.getBoolean(LTECH_SUCCESS_AUTHORIZATION_JSON_TITLE);

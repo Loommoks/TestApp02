@@ -14,6 +14,9 @@ import com.redmadrobot.inputmask.MaskedTextChangedListener;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import su.zencode.testapp02.DevExamRepositories.Credentials;
 import su.zencode.testapp02.DevExamRepositories.AuthorizationsRepository;
 
@@ -28,6 +31,7 @@ public class LaunchActivity extends AppCompatActivity {
     private EditText mPhoneField;
     private EditText mPasswordField;
     private int mMaskCode;
+    private Timer mTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +52,15 @@ public class LaunchActivity extends AppCompatActivity {
                 new AuthorizeTask(credentials).execute();
             }
         });
+        mTimer = new Timer();
 
         new FetchMaskTask().execute();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mTimer.cancel();
     }
 
     private class FetchMaskTask extends AsyncTask<Void,Void,String> {
@@ -73,6 +84,12 @@ public class LaunchActivity extends AppCompatActivity {
                 }
 
             } else {
+                mTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        new FetchMaskTask().execute();
+                    }
+                }, 2000);
                 Log.e(TAG, "Received null-phone-mask");
             }
         }
@@ -87,13 +104,27 @@ public class LaunchActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            boolean success = new AuthorizeService(mCredentials)
+            Boolean success = new AuthorizeService(mCredentials)
                     .tryRemoteAuthorization();
             return success;
         }
 
         @Override
         protected void onPostExecute(Boolean result) {
+            if(result == null) {
+                Toast.makeText(
+                        LaunchActivity.this,
+                        "Failed to receive data from L-Tech Server / Bad Internet",
+                        Toast.LENGTH_SHORT
+                ).show();
+                mTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        new AuthorizeTask(mCredentials).execute();
+                    }
+                },2000);
+                return;
+            }
             if(result) {
                 if(AuthorizationsRepository.create(LaunchActivity.this)
                         .get(mCredentials.getCode()) == null) {
